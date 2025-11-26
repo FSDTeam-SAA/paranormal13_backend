@@ -1,7 +1,7 @@
-const MedicinePlan = require('../models/medicinePlanModel');
-const catchAsync = require('../utils/catchAsync');
+import MedicinePlan from "../models/medicinePlanModel.js";
+import catchAsync from "../utils/catchAsync.js";
 
-exports.createMedicinePlan = catchAsync(async (req, res, next) => {
+export const createMedicinePlan = catchAsync(async (req, res, next) => {
   const plan = await MedicinePlan.create({
     patient: req.user.id,
     name: req.body.name,
@@ -20,7 +20,7 @@ exports.createMedicinePlan = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getMyMedicinePlans = catchAsync(async (req, res, next) => {
+export const getMyMedicinePlans = catchAsync(async (req, res, next) => {
   const plans = await MedicinePlan.find({ patient: req.user.id, isActive: true });
 
   res.status(200).json({
@@ -31,7 +31,7 @@ exports.getMyMedicinePlans = catchAsync(async (req, res, next) => {
 });
 
 // Very simple "today" endpoint - frontend can map into upcoming/taken/missed
-exports.getTodayPlans = catchAsync(async (req, res, next) => {
+export const getTodayPlans = catchAsync(async (req, res, next) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
@@ -51,7 +51,7 @@ exports.getTodayPlans = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.updateMedicinePlan = catchAsync(async (req, res, next) => {
+export const updateMedicinePlan = catchAsync(async (req, res, next) => {
   const plan = await MedicinePlan.findOneAndUpdate(
     { _id: req.params.id, patient: req.user.id },
     req.body,
@@ -64,7 +64,7 @@ exports.updateMedicinePlan = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.deleteMedicinePlan = catchAsync(async (req, res, next) => {
+export const deleteMedicinePlan = catchAsync(async (req, res, next) => {
   await MedicinePlan.findOneAndDelete({ _id: req.params.id, patient: req.user.id });
 
   res.status(204).json({

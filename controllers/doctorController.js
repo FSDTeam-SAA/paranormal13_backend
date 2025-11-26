@@ -1,9 +1,9 @@
-const User = require('../models/userModel');
-const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
+import User from "../models/userModel.js";
+import catchAsync from "../utils/catchAsync.js";
+import AppError from "../utils/appError.js";
 
 // 1. Get All Doctors (Search & Filter)
-exports.getDoctors = catchAsync(async (req, res, next) => {
+export const getDoctors = catchAsync(async (req, res, next) => {
   const { search, specialization } = req.query;
 
   // Base Query: Must be a Doctor AND must be Approved
@@ -38,7 +38,7 @@ exports.getDoctors = catchAsync(async (req, res, next) => {
 });
 
 // 2. Get Single Doctor Profile
-exports.getDoctor = catchAsync(async (req, res, next) => {
+export const getDoctor = catchAsync(async (req, res, next) => {
   const doctor = await User.findOne({ 
     _id: req.params.id, 
     role: 'doctor',

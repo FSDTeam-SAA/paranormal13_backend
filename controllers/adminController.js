@@ -1,8 +1,8 @@
-const User = require('../models/userModel');
-const Order = require('../models/orderModel');
-const catchAsync = require('../utils/catchAsync');
+import User from "../models/userModel.js";
+import Order from "../models/orderModel.js";
+import catchAsync from "../utils/catchAsync.js";
 
-exports.getDashboardStats = catchAsync(async (req, res, next) => {
+export const getDashboardStats = catchAsync(async (req, res, next) => {
   const totalUsers = await User.countDocuments({ role: 'patient' });
   const totalDoctors = await User.countDocuments({ role: 'doctor' });
   const totalPharmacists = await User.countDocuments({ role: 'pharmacist' });
@@ -23,7 +23,7 @@ exports.getDashboardStats = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getUsersByRole = catchAsync(async (req, res, next) => {
+export const getUsersByRole = catchAsync(async (req, res, next) => {
   const { role = 'patient', page = 1, limit = 10 } = req.query;
   const skip = (page - 1) * limit;
 
@@ -42,7 +42,7 @@ exports.getUsersByRole = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.updateUserStatus = catchAsync(async (req, res, next) => {
+export const updateUserStatus = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(
     req.params.id,
     { active: req.body.active },

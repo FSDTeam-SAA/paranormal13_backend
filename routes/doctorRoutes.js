@@ -1,7 +1,7 @@
-const express = require("express");
-const doctorController = require("../controllers/doctorController");
-const scheduleController = require("../controllers/scheduleController");
-const { protect } = require("../middleware/authMiddleware");
+import express from "express";
+import { getDoctors, getDoctor } from "../controllers/doctorController.js";
+import { getSlotsForDoctor } from "../controllers/scheduleController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -9,13 +9,13 @@ const router = express.Router();
 router.use(protect);
 
 // Get all doctors (with search & filters)
-router.get("/", doctorController.getDoctors);
+router.get("/", getDoctors);
 
 // Get specific doctor details
-router.get("/:id", doctorController.getDoctor);
+router.get("/:id", getDoctor);
 
 // 2. Doctor Schedule (Slots)
 // A patient needs to see a specific doctor's available slots
-router.get("/:doctorId/slots", scheduleController.getSlotsForDoctor);
+router.get("/:doctorId/slots", getSlotsForDoctor);
 
-module.exports = router;
+export default router;

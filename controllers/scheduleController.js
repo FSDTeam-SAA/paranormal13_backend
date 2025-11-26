@@ -1,9 +1,9 @@
-const DoctorSchedule = require("../models/doctorScheduleModel");
-const catchAsync = require("../utils/catchAsync");
-const AppError = require("../utils/appError");
+import DoctorSchedule from "../models/doctorScheduleModel.js";
+import catchAsync from "../utils/catchAsync.js";
+import AppError from "../utils/appError.js";
 
 // 1. Create a Slot (Doctor)
-exports.createSlot = catchAsync(async (req, res, next) => {
+export const createSlot = catchAsync(async (req, res, next) => {
   const { date, startTime, endTime } = req.body;
 
   // Basic validation
@@ -27,7 +27,7 @@ exports.createSlot = catchAsync(async (req, res, next) => {
 });
 
 // 2. Get My Slots (Doctor Dashboard)
-exports.getMySlots = catchAsync(async (req, res, next) => {
+export const getMySlots = catchAsync(async (req, res, next) => {
   const slots = await DoctorSchedule.find({ doctor: req.user.id }).sort({
     date: 1,
     startTime: 1,
@@ -41,7 +41,7 @@ exports.getMySlots = catchAsync(async (req, res, next) => {
 });
 
 // 3. Delete Slot (Doctor)
-exports.deleteSlot = catchAsync(async (req, res, next) => {
+export const deleteSlot = catchAsync(async (req, res, next) => {
   const slot = await DoctorSchedule.findOne({
     _id: req.params.id,
     doctor: req.user.id,
@@ -71,7 +71,7 @@ exports.deleteSlot = catchAsync(async (req, res, next) => {
 
 // 4. Get Slots For A Specific Doctor (Patient View)
 // This is called via the doctorRoutes: /api/doctors/:doctorId/slots
-exports.getSlotsForDoctor = catchAsync(async (req, res, next) => {
+export const getSlotsForDoctor = catchAsync(async (req, res, next) => {
   const { doctorId } = req.params;
   const { date } = req.query; // Optional filter: ?date=2025-11-30
 

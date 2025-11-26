@@ -1,11 +1,11 @@
-const jwt = require("jsonwebtoken");
-const { promisify } = require("util");
-const User = require("../models/userModel");
-const AppError = require("../utils/appError");
-const catchAsync = require("../utils/catchAsync");
+import jwt from "jsonwebtoken";
+import { promisify } from "util";
+import User from "../models/userModel.js";
+import AppError from "../utils/appError.js";
+import catchAsync from "../utils/catchAsync.js";
 
 // 1. PROTECT - Verify Token & User
-exports.protect = catchAsync(async (req, res, next) => {
+export const protect = catchAsync(async (req, res, next) => {
   // 1) Get token from Authorization header or Cookie
   let token;
   if (
@@ -54,7 +54,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 });
 
 // 2. RESTRICT - Role Based Access Control
-exports.restrictTo = (...roles) => {
+export const restrictTo = (...roles) => {
   return (req, res, next) => {
     // roles ['admin', 'doctor']. role='user'
     if (!roles.includes(req.user.role)) {
@@ -68,21 +68,23 @@ exports.restrictTo = (...roles) => {
 
 // 3. GATEKEEPER - Check Doctor Verification Status
 // This ensures even if a doctor logs in, they can't do doctor stuff until approved
-exports.restrictToApprovedDoctor = catchAsync(async (req, res, next) => {
-  // First, ensure they are actually a doctor
-  if (req.user.role !== "doctor") {
-    return next(); // If not a doctor, this check might not apply or handled by restrictTo
-  }
+export const restrictToApprovedDoctor = catchAsync(
+  async (req, res, next) => {
+    // First, ensure they are actually a doctor
+    if (req.user.role !== "doctor") {
+      return next(); // If not a doctor, this check might not apply or handled by restrictTo
+    }
 
-  // If they ARE a doctor, check status
-  if (req.user.doctorStatus !== "approved") {
-    return next(
-      new AppError(
-        "Your account is pending Admin approval. You cannot access this feature yet.",
-        403
-      )
-    );
-  }
+    // If they ARE a doctor, check status
+    if (req.user.doctorStatus !== "approved") {
+      return next(
+        new AppError(
+          "Your account is pending Admin approval. You cannot access this feature yet.",
+          403
+        )
+      );
+    }
 
-  next();
-});
+    next();
+  }
+);

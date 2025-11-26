@@ -1,10 +1,10 @@
-const Appointment = require("../models/appointmentModel");
-const DoctorSchedule = require("../models/doctorScheduleModel");
-const catchAsync = require("../utils/catchAsync");
-const AppError = require("../utils/appError");
+import Appointment from "../models/appointmentModel.js";
+import DoctorSchedule from "../models/doctorScheduleModel.js";
+import catchAsync from "../utils/catchAsync.js";
+import AppError from "../utils/appError.js";
 
 // 1. Create Appointment (Patient)
-exports.createAppointment = catchAsync(async (req, res, next) => {
+export const createAppointment = catchAsync(async (req, res, next) => {
   const { slotId, doctorId, notes } = req.body;
 
   // A) Check if the slot exists and is actually free
@@ -38,7 +38,7 @@ exports.createAppointment = catchAsync(async (req, res, next) => {
 });
 
 // 2. Get My Appointments (Patient)
-exports.getMyAppointments = catchAsync(async (req, res, next) => {
+export const getMyAppointments = catchAsync(async (req, res, next) => {
   const appointments = await Appointment.find({ patient: req.user.id })
     .populate({
       path: "doctor",
@@ -58,7 +58,7 @@ exports.getMyAppointments = catchAsync(async (req, res, next) => {
 });
 
 // 3. Get My Appointments (Doctor)
-exports.getDoctorAppointments = catchAsync(async (req, res, next) => {
+export const getDoctorAppointments = catchAsync(async (req, res, next) => {
   const appointments = await Appointment.find({ doctor: req.user.id })
     .populate({
       path: "patient",
@@ -78,7 +78,7 @@ exports.getDoctorAppointments = catchAsync(async (req, res, next) => {
 });
 
 // 4. Cancel Appointment (Both)
-exports.cancelAppointment = catchAsync(async (req, res, next) => {
+export const cancelAppointment = catchAsync(async (req, res, next) => {
   const appointment = await Appointment.findById(req.params.id);
 
   if (!appointment) {
@@ -123,7 +123,7 @@ exports.cancelAppointment = catchAsync(async (req, res, next) => {
 });
 
 // 5. Complete Appointment (Doctor Only)
-exports.markAppointmentCompleted = catchAsync(async (req, res, next) => {
+export const markAppointmentCompleted = catchAsync(async (req, res, next) => {
   const appointment = await Appointment.findOne({
     _id: req.params.id,
     doctor: req.user.id,

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const medicineLogSchema = new mongoose.Schema(
   {
@@ -39,4 +39,4 @@ const medicineLogSchema = new mongoose.Schema(
 medicineLogSchema.index({ patient: 1, scheduledDate: 1 });
 
 const MedicineLog = mongoose.model("MedicineLog", medicineLogSchema);
-module.exports = MedicineLog;
+export default MedicineLog;

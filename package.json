@@ -2,6 +2,7 @@
   "name": "mediremind-backend",
   "version": "1.0.0",
   "description": "MediRemind API (Express + MongoDB) for patient, doctor, pharmacist and admin flows.",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

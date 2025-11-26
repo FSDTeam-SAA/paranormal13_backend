@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const pharmacySchema = new mongoose.Schema(
   {
@@ -54,4 +54,4 @@ const pharmacySchema = new mongoose.Schema(
 pharmacySchema.index({ location: "2dsphere" });
 
 const Pharmacy = mongoose.model("Pharmacy", pharmacySchema);
-module.exports = Pharmacy;
+export default Pharmacy;

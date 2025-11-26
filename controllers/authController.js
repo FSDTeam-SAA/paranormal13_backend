@@ -1,10 +1,13 @@
-const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
-const User = require('../models/userModel');
-const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
-const sendEmail = require('../utils/email');
-const { passwordResetTemplate, welcomeTemplate } = require('../utils/emailTemplates');
+import crypto from "crypto";
+import jwt from "jsonwebtoken";
+import User from "../models/userModel.js";
+import catchAsync from "../utils/catchAsync.js";
+import AppError from "../utils/appError.js";
+import sendEmail from "../utils/email.js";
+import {
+  passwordResetTemplate,
+  welcomeTemplate,
+} from "../utils/emailTemplates.js";
 
 const signToken = id => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -40,7 +43,7 @@ const createSendToken = (user, statusCode, res) => {
 
 // --- AUTH CONTROLLERS ---
 
-exports.signup = catchAsync(async (req, res, next) => {
+export const signup = catchAsync(async (req, res, next) => {
   // We strictly allow only specific fields for signup to prevent security issues
   // (e.g., preventing a user from making themselves 'doctorStatus: approved' or 'role: admin')
   const newUser = await User.create({
@@ -68,7 +71,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   createSendToken(newUser, 201, res);
 });
 
-exports.login = catchAsync(async (req, res, next) => {
+export const login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
   // 1) Check if email and password exist
@@ -87,7 +90,7 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
-exports.logout = (req, res) => {
+export const logout = (req, res) => {
   // Overwrite cookie with dummy data
   res.cookie('jwt', 'loggedout', {
     expires: new Date(Date.now() + 10 * 1000),
@@ -98,7 +101,7 @@ exports.logout = (req, res) => {
 
 // --- PASSWORD RESET FLOW ---
 
-exports.forgotPassword = catchAsync(async (req, res, next) => {
+export const forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on POSTed email
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
@@ -134,7 +137,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   }
 });
 
-exports.verifyResetCode = catchAsync(async (req, res, next) => {
+export const verifyResetCode = catchAsync(async (req, res, next) => {
   // 1) Hash the code user sent to compare with DB
   const hashedCode = crypto
     .createHash('sha256')
@@ -157,7 +160,7 @@ exports.verifyResetCode = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.resetPassword = catchAsync(async (req, res, next) => {
+export const resetPassword = catchAsync(async (req, res, next) => {
   const hashedCode = crypto
     .createHash('sha256')
     .update(req.body.code)
@@ -182,7 +185,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
-exports.updatePassword = catchAsync(async (req, res, next) => {
+export const updatePassword = catchAsync(async (req, res, next) => {
   // 1) Get user from collection
   const user = await User.findById(req.user.id).select('+password');
 

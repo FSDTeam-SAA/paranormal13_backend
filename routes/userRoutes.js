@@ -1,35 +1,37 @@
-const express = require("express");
-const userController = require("../controllers/userController");
-const { protect } = require("../middleware/authMiddleware"); // Importing Auth Middleware
-const { uploadSingleImage } = require("../middleware/uploadMiddleware");
+import express from "express";
+import {
+  getMe,
+  updateMe,
+  sendFamilyRequest,
+  respondToFamilyRequest,
+  getMyFamilyMembers,
+  getReceivedFamilyRequests,
+  deleteFamilyMember,
+} from "../controllers/userController.js";
+import { protect } from "../middleware/authMiddleware.js";
+import { uploadSingleImage } from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
 router.use(protect);
 
-//USER PROFILE
-router.get("/me", userController.getMe);
-router.patch("/me", uploadSingleImage("avatar"), userController.updateMe);
+// USER PROFILE
+router.get("/me", getMe);
+router.patch("/me", uploadSingleImage("avatar"), updateMe);
 
-//FAMILY CONNECTION
-router.post("/family/request", userController.sendFamilyRequest);
+// FAMILY CONNECTION
+router.post("/family/request", sendFamilyRequest);
 
 // Accept or Reject a request
-router.patch(
-  "/family/request/:requestId",
-  userController.respondToFamilyRequest
-);
+router.patch("/family/request/:requestId", respondToFamilyRequest);
 
 // 3. Get list of accepted Family Members
-router.get("/family", userController.getMyFamilyMembers);
+router.get("/family", getMyFamilyMembers);
 
 // 4. Get list of Pending Requests (Incoming)
-router.get(
-  "/family/requests/received",
-  userController.getReceivedFamilyRequests
-);
+router.get("/family/requests/received", getReceivedFamilyRequests);
 
 // 5. Remove a family member connection
-router.delete("/family/:id", userController.deleteFamilyMember);
+router.delete("/family/:id", deleteFamilyMember);
 
-module.exports = router;
+export default router;

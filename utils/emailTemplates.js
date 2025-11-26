@@ -1,4 +1,4 @@
-exports.passwordResetTemplate = (resetCode, userName) => `
+export const passwordResetTemplate = (resetCode, userName) => `
   <div style="font-family: Arial, sans-serif; padding: 16px; background:#f4f7fb;">
     <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:8px;padding:24px;
       box-shadow:0 8px 24px rgba(15,23,42,0.08);">
@@ -23,7 +23,7 @@ exports.passwordResetTemplate = (resetCode, userName) => `
   </div>
 `;
 
-exports.welcomeTemplate = (userName, role) => `
+export const welcomeTemplate = (userName, role) => `
   <div style="font-family: Arial, sans-serif; padding: 16px; background:#f4f7fb;">
     <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:8px;padding:24px;
       box-shadow:0 8px 24px rgba(15,23,42,0.08);">

@@ -1,23 +1,31 @@
-const express = require("express");
-const authController = require("../controllers/authController");
-const { protect } = require("../middleware/authMiddleware");
+import express from "express";
+import {
+  signup,
+  login,
+  logout,
+  forgotPassword,
+  verifyResetCode,
+  resetPassword,
+  updatePassword,
+} from "../controllers/authController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // --- PUBLIC ROUTES (No Token Needed) ---
-router.post("/signup", authController.signup);
-router.post("/login", authController.login);
-router.post("/logout", authController.logout);
+router.post("/signup", signup);
+router.post("/login", login);
+router.post("/logout", logout);
 
-router.post("/forgotPassword", authController.forgotPassword);
-router.post("/verifyResetCode", authController.verifyResetCode);
-router.post("/resetPassword", authController.resetPassword);
+router.post("/forgotPassword", forgotPassword);
+router.post("/verifyResetCode", verifyResetCode);
+router.post("/resetPassword", resetPassword);
 
 // --- PROTECTED ROUTES (Token Needed) ---
 router.use(protect);
 
 // Note: '/me' route has been moved to userRoutes.js
 
-router.patch("/updateMyPassword", authController.updatePassword);
+router.patch("/updateMyPassword", updatePassword);
 
-module.exports = router;
+export default router;

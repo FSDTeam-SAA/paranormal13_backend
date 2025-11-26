@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const familyMemberSchema = new mongoose.Schema(
   {
@@ -38,4 +38,4 @@ const familyMemberSchema = new mongoose.Schema(
 familyMemberSchema.index({ requester: 1, recipient: 1 }, { unique: true });
 
 const FamilyMember = mongoose.model("FamilyMember", familyMemberSchema);
-module.exports = FamilyMember;
+export default FamilyMember;

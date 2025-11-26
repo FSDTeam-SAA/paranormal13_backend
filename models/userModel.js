@@ -1,7 +1,7 @@
-const crypto = require("crypto");
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
-const validator = require("validator");
+import crypto from "crypto";
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import validator from "validator";
 
 const userSchema = new mongoose.Schema(
   {
@@ -98,7 +98,7 @@ userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
 ) {
-  return await bcrypt.compare(candidatePassword, userPassword);
+  return bcrypt.compare(candidatePassword, userPassword);
 };
 
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
@@ -123,4 +123,4 @@ userSchema.methods.createPasswordResetCode = function () {
 };
 
 const User = mongoose.model("User", userSchema);
-module.exports = User;
+export default User;

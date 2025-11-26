@@ -1,8 +1,8 @@
-const Order = require('../models/orderModel');
-const catchAsync = require('../utils/catchAsync');
+import Order from "../models/orderModel.js";
+import catchAsync from "../utils/catchAsync.js";
 
 // Patient creates order
-exports.createOrder = catchAsync(async (req, res, next) => {
+export const createOrder = catchAsync(async (req, res, next) => {
   const { pharmacyId, medicines, address, lat, lng } = req.body;
 
   const order = await Order.create({
@@ -23,7 +23,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
 });
 
 // Patient orders
-exports.getMyOrders = catchAsync(async (req, res, next) => {
+export const getMyOrders = catchAsync(async (req, res, next) => {
   const orders = await Order.find({ patient: req.user.id })
     .populate('pharmacy', 'name address')
     .sort('-createdAt');
@@ -36,7 +36,7 @@ exports.getMyOrders = catchAsync(async (req, res, next) => {
 });
 
 // Pharmacy orders
-exports.getMyPharmacyOrders = catchAsync(async (req, res, next) => {
+export const getMyPharmacyOrders = catchAsync(async (req, res, next) => {
   const orders = await Order.find()
     .populate({
       path: 'pharmacy',
@@ -55,7 +55,7 @@ exports.getMyPharmacyOrders = catchAsync(async (req, res, next) => {
 });
 
 // Pharmacy updates status
-exports.updateOrderStatus = catchAsync(async (req, res, next) => {
+export const updateOrderStatus = catchAsync(async (req, res, next) => {
   const order = await Order.findByIdAndUpdate(
     req.params.id,
     { status: req.body.status },

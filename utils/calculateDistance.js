@@ -1,5 +1,5 @@
 // Haversine formula to calculate distance between two coords in km
-module.exports = function calculateDistanceKm(lat1, lng1, lat2, lng2) {
+export default function calculateDistanceKm(lat1, lng1, lat2, lng2) {
   function toRad(value) {
     return (value * Math.PI) / 180;
   }
@@ -16,4 +16,4 @@ module.exports = function calculateDistanceKm(lat1, lng1, lat2, lng2) {
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
-};
+}

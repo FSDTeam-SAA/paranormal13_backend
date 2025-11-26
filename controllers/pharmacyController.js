@@ -1,9 +1,9 @@
-const Pharmacy = require('../models/pharmacyModel');
-const calculateDistanceKm = require('../utils/calculateDistance');
-const catchAsync = require('../utils/catchAsync');
+import Pharmacy from "../models/pharmacyModel.js";
+import calculateDistanceKm from "../utils/calculateDistance.js";
+import catchAsync from "../utils/catchAsync.js";
 
 // Pharmacist create/update own pharmacy
-exports.upsertMyPharmacy = catchAsync(async (req, res, next) => {
+export const upsertMyPharmacy = catchAsync(async (req, res, next) => {
   const { name, managerName, address, lat, lng } = req.body;
 
   const update = {
@@ -30,7 +30,7 @@ exports.upsertMyPharmacy = catchAsync(async (req, res, next) => {
 });
 
 // Nearby pharmacies sorted by distance
-exports.getNearbyPharmacies = catchAsync(async (req, res, next) => {
+export const getNearbyPharmacies = catchAsync(async (req, res, next) => {
   const { lat, lng, maxDistanceKm = 10 } = req.query;
 
   const latNum = parseFloat(lat);

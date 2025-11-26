@@ -1,15 +1,18 @@
-const express = require('express');
-const pharmacyController = require('../controllers/pharmacyController');
-const { protect, restrictTo } = require('../middleware/authMiddleware');
+import express from "express";
+import {
+  getNearbyPharmacies,
+  upsertMyPharmacy,
+} from "../controllers/pharmacyController.js";
+import { protect, restrictTo } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // public: list nearby
-router.get('/nearby', pharmacyController.getNearbyPharmacies);
+router.get("/nearby", getNearbyPharmacies);
 
 // pharmacy owner
-router.use(protect, restrictTo('pharmacist'));
+router.use(protect, restrictTo("pharmacist"));
 
-router.post('/me', pharmacyController.upsertMyPharmacy);
+router.post("/me", upsertMyPharmacy);
 
-module.exports = router;
+export default router;

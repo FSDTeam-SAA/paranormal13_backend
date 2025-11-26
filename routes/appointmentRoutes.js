@@ -1,10 +1,16 @@
-const express = require("express");
-const appointmentController = require("../controllers/appointmentController");
-const {
+import express from "express";
+import {
+  createAppointment,
+  getMyAppointments,
+  getDoctorAppointments,
+  markAppointmentCompleted,
+  cancelAppointment,
+} from "../controllers/appointmentController.js";
+import {
   protect,
   restrictTo,
   restrictToApprovedDoctor,
-} = require("../middleware/authMiddleware");
+} from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -12,16 +18,8 @@ const router = express.Router();
 router.use(protect);
 
 // --- PATIENT ROUTES ---
-router.post(
-  "/",
-  restrictTo("patient"),
-  appointmentController.createAppointment
-);
-router.get(
-  "/me",
-  restrictTo("patient"),
-  appointmentController.getMyAppointments
-);
+router.post("/", restrictTo("patient"), createAppointment);
+router.get("/me", restrictTo("patient"), getMyAppointments);
 
 // --- DOCTOR ROUTES ---
 router.get(
@@ -29,7 +27,7 @@ router.get(
   restrictTo("doctor"),
   // Gatekeeper: Unapproved doctors shouldn't see patient lists
   restrictToApprovedDoctor,
-  appointmentController.getDoctorAppointments
+  getDoctorAppointments
 );
 
 // Mark as completed (e.g. after chat)
@@ -37,11 +35,11 @@ router.patch(
   "/:id/complete",
   restrictTo("doctor"),
   restrictToApprovedDoctor,
-  appointmentController.markAppointmentCompleted
+  markAppointmentCompleted
 );
 
 // --- SHARED ROUTES ---
 // Both patient and doctor can cancel (logic inside controller handles permissions)
-router.patch("/:id/cancel", appointmentController.cancelAppointment);
+router.patch("/:id/cancel", cancelAppointment);
 
-module.exports = router;
+export default router;

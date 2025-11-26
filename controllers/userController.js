@@ -1,10 +1,10 @@
-const User = require('../models/userModel');
-const FamilyMember = require('../models/familyMemberModel');
-const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
+import User from "../models/userModel.js";
+import FamilyMember from "../models/familyMemberModel.js";
+import catchAsync from "../utils/catchAsync.js";
+import AppError from "../utils/appError.js";
 
 // 1. Get Current User Profile (with formatted dates)
-exports.getMe = catchAsync(async (req, res, next) => {
+export const getMe = catchAsync(async (req, res, next) => {
   // We assume req.user is set (even if auth is commented out, normally it would be there)
   // For testing without auth, you might need to hardcode an ID if protect is off
   // But usually, we uncomment protect before testing this.
@@ -27,7 +27,7 @@ exports.getMe = catchAsync(async (req, res, next) => {
 });
 
 // 2. Update User Profile
-exports.updateMe = catchAsync(async (req, res, next) => {
+export const updateMe = catchAsync(async (req, res, next) => {
   // 1) Create error if user POSTs password data
   if (req.body.password || req.body.passwordConfirm) {
     return next(
@@ -70,7 +70,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 // --- FAMILY MEMBER LOGIC ---
 
 // 3. Send Family Request (User A invites User B)
-exports.sendFamilyRequest = catchAsync(async (req, res, next) => {
+export const sendFamilyRequest = catchAsync(async (req, res, next) => {
   const { email, phone, relationship } = req.body;
 
   // 1. Find the user they want to add
@@ -113,7 +113,7 @@ exports.sendFamilyRequest = catchAsync(async (req, res, next) => {
 });
 
 // 4. Respond to Request (User B accepts/rejects)
-exports.respondToFamilyRequest = catchAsync(async (req, res, next) => {
+export const respondToFamilyRequest = catchAsync(async (req, res, next) => {
   const { requestId } = req.params;
   const { status } = req.body; // 'accepted' or 'rejected'
 
@@ -142,7 +142,7 @@ exports.respondToFamilyRequest = catchAsync(async (req, res, next) => {
 });
 
 // 5. Get My Accepted Family Members
-exports.getMyFamilyMembers = catchAsync(async (req, res, next) => {
+export const getMyFamilyMembers = catchAsync(async (req, res, next) => {
   // Logic: Find entries where I am the requester OR recipient, AND status is accepted
   const connections = await FamilyMember.find({
     $or: [{ requester: req.user.id }, { recipient: req.user.id }],
@@ -170,7 +170,7 @@ exports.getMyFamilyMembers = catchAsync(async (req, res, next) => {
 });
 
 // 6. Get Pending Requests (Incoming)
-exports.getReceivedFamilyRequests = catchAsync(async (req, res, next) => {
+export const getReceivedFamilyRequests = catchAsync(async (req, res, next) => {
   const requests = await FamilyMember.find({
     recipient: req.user.id,
     status: 'pending'
@@ -184,7 +184,7 @@ exports.getReceivedFamilyRequests = catchAsync(async (req, res, next) => {
 });
 
 // 7. Remove Family Member
-exports.deleteFamilyMember = catchAsync(async (req, res, next) => {
+export const deleteFamilyMember = catchAsync(async (req, res, next) => {
   const connection = await FamilyMember.findById(req.params.id);
 
   if (!connection) {

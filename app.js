@@ -1,26 +1,26 @@
-const express = require("express");
-const morgan = require("morgan");
-const helmet = require("helmet");
-const rateLimit = require("express-rate-limit");
-const mongoSanitize = require("express-mongo-sanitize");
-const xss = require("xss-clean");
-const cors = require("cors");
-const cookieParser = require("cookie-parser");
-const hpp = require("hpp");
+import express from "express";
+import morgan from "morgan";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import mongoSanitize from "express-mongo-sanitize";
+import xss from "xss-clean";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import hpp from "hpp";
 
-const AppError = require("./utils/appError");
-const globalErrorHandler = require("./middleware/globalErrorHandler");
+import AppError from "./utils/appError.js";
+import globalErrorHandler from "./middleware/globalErrorHandler.js";
 
 // --- ROUTE IMPORTS ---
-const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/userRoutes");
-const doctorRoutes = require("./routes/doctorRoutes");
-const scheduleRoutes = require("./routes/scheduleRoutes");
-const appointmentRoutes = require("./routes/appointmentRoutes");
-const pharmacyRoutes = require("./routes/pharmacyRoutes");
-const medicineRoutes = require("./routes/medicineRoutes");
-const orderRoutes = require("./routes/orderRoutes");
-const adminRoutes = require("./routes/adminRoutes");
+import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import doctorRoutes from "./routes/doctorRoutes.js";
+import scheduleRoutes from "./routes/scheduleRoutes.js";
+import appointmentRoutes from "./routes/appointmentRoutes.js";
+import pharmacyRoutes from "./routes/pharmacyRoutes.js";
+import medicineRoutes from "./routes/medicineRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 const app = express();
 
@@ -88,4 +88,4 @@ app.all("*", (req, res, next) => {
 // Global Error Handler
 app.use(globalErrorHandler);
 
-module.exports = app;
+export default app;

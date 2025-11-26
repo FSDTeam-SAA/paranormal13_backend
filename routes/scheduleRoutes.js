@@ -1,6 +1,14 @@
-const express = require('express');
-const scheduleController = require('../controllers/scheduleController');
-const { protect, restrictTo, restrictToApprovedDoctor } = require('../middleware/authMiddleware');
+import express from "express";
+import {
+  createSlot,
+  getMySlots,
+  deleteSlot,
+} from "../controllers/scheduleController.js";
+import {
+  protect,
+  restrictTo,
+  restrictToApprovedDoctor,
+} from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -8,15 +16,13 @@ const router = express.Router();
 router.use(protect);
 
 // 2. Restrict all routes to Doctors only
-router.use(restrictTo('doctor'));
+router.use(restrictTo("doctor"));
 
 router
-  .route('/')
-  .post(restrictToApprovedDoctor, scheduleController.createSlot) // GATEKEEPER: Must be approved to create slots
-  .get(scheduleController.getMySlots);
+  .route("/")
+  .post(restrictToApprovedDoctor, createSlot) // GATEKEEPER: Must be approved to create slots
+  .get(getMySlots);
 
-router
-  .route('/:id')
-  .delete(scheduleController.deleteSlot);
+router.route("/:id").delete(deleteSlot);
 
-module.exports = router;
+export default router;

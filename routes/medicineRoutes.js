@@ -1,22 +1,26 @@
-const express = require('express');
-const medicineController = require('../controllers/medicineController');
-const { protect, restrictTo } = require('../middleware/authMiddleware');
+import express from "express";
+import {
+  createMedicinePlan,
+  getMyMedicinePlans,
+  getTodayPlans,
+  updateMedicinePlan,
+  deleteMedicinePlan,
+} from "../controllers/medicineController.js";
+import { protect, restrictTo } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router.use(protect);
-router.use(restrictTo('patient'));
+router.use(restrictTo("patient"));
 
-router
-  .route('/')
-  .post(medicineController.createMedicinePlan)
-  .get(medicineController.getMyMedicinePlans);
+router.route("/")
+  .post(createMedicinePlan)
+  .get(getMyMedicinePlans);
 
-router.get('/today', medicineController.getTodayPlans);
+router.get("/today", getTodayPlans);
 
-router
-  .route('/:id')
-  .patch(medicineController.updateMedicinePlan)
-  .delete(medicineController.deleteMedicinePlan);
+router.route("/:id")
+  .patch(updateMedicinePlan)
+  .delete(deleteMedicinePlan);
 
-module.exports = router;
+export default router;

@@ -1,5 +1,6 @@
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import app from "./app.js";
 
 // 1. Load environment variables
 dotenv.config({ path: "./.env" });
@@ -7,12 +8,10 @@ dotenv.config({ path: "./.env" });
 // 2. Safety Check: Ensure DB string exists
 if (!process.env.DATABASE) {
   console.error(
-    "💥 FATAL ERROR: DATABASE environment variable is missing in .env file!"
+    "dY'� FATAL ERROR: DATABASE environment variable is missing in .env file!"
   );
   process.exit(1);
 }
-
-const app = require("./app");
 
 // 3. Construct DB Connection String
 // Use replace only if <PASSWORD> placeholder exists in the string
@@ -23,20 +22,20 @@ if (process.env.DATABASE_PASSWORD) {
 
 mongoose
   .connect(DB) // Removed deprecated options (useNewUrlParser/useUnifiedTopology are default in Mongoose 6+)
-  .then(() => console.log("✅ DB connection successful"))
+  .then(() => console.log("�o. DB connection successful"))
   .catch((err) => {
-    console.error("💥 DB Connection Error:", err.name, err.message);
+    console.error("dY'� DB Connection Error:", err.name, err.message);
     process.exit(1); // Stop app if DB fails
   });
 
 const port = process.env.PORT || 8000;
 const server = app.listen(port, () => {
-  console.log(`🚀 App running on port ${port}...`);
+  console.log(`dYs? App running on port ${port}...`);
 });
 
 // Handle Unhandled Rejections (e.g. DB connection drops)
 process.on("unhandledRejection", (err) => {
-  console.log("UNHANDLED REJECTION! 💥 Shutting down...");
+  console.log("UNHANDLED REJECTION! dY'� Shutting down...");
   console.log(err.name, err.message);
   server.close(() => {
     process.exit(1);
