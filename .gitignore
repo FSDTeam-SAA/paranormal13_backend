@@ -1,0 +1,63 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json.lock  # placeholder if created accidentally
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+logs/
+*.log
+logs/**/*.log
+
+# Dependency directories
+jspm_packages/
+
+# Build output
+dist/
+build/
+.tmp/
+out/
+coverage/
+.nyc_output/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.vscode-test/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc caches
+.cache/
+.terraform/
+.cache-loader/
+eslintcache
+parcel-bundler-cache/
+.next/
+.nuxt/
+bower_components/
+
+# Test reports
+test-results/
+reports/
+
+# Uploads / local storage (adjust if you track uploads)
+uploads/
+tmp/
+temp/
+
+# Optional: lockfiles are usually committed — uncomment to ignore
+# yarn.lock
+# package-lock.json
