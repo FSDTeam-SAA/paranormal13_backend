@@ -11,22 +11,14 @@ import hpp from "hpp";
 import AppError from "./utils/appError.js";
 import globalErrorHandler from "./middleware/globalErrorHandler.js";
 
-// --- ROUTE IMPORTS ---
-import authRoutes from "./routes/authRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
-import doctorRoutes from "./routes/doctorRoutes.js";
-import scheduleRoutes from "./routes/scheduleRoutes.js";
-import appointmentRoutes from "./routes/appointmentRoutes.js";
-import pharmacyRoutes from "./routes/pharmacyRoutes.js";
-import medicineRoutes from "./routes/medicineRoutes.js";
-import orderRoutes from "./routes/orderRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js";
+// Import the single main router
+import routes from "./routes/index.js";
 
 const app = express();
 
 // --- GLOBAL MIDDLEWARES ---
 
-// 1) GLOBAL CORS (Allow everyone for now to avoid frontend headaches during dev)
+// 1) GLOBAL CORS
 app.use(cors({ origin: true, credentials: true }));
 app.options("*", cors());
 
@@ -38,7 +30,7 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-// 4) Limit requests from same API
+// 4) Limit requests
 const limiter = rateLimit({
   max: 1000,
   windowMs: 60 * 60 * 1000,
@@ -46,31 +38,25 @@ const limiter = rateLimit({
 });
 app.use("/api", limiter);
 
-// 5) Body parser, reading data from body into req.body
+// 5) Body parser
 app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
 
-// 6) Data sanitization against NoSQL query injection
+// 6) Data sanitization
 app.use(mongoSanitize());
 
-// 7) Data sanitization against XSS
+// 7) XSS Protection
 app.use(xss());
 
 // 8) Prevent parameter pollution
 app.use(hpp());
 
-// --- ROUTES MOUNTING ---
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/doctors", doctorRoutes);
-app.use("/api/schedules", scheduleRoutes);
-app.use("/api/appointments", appointmentRoutes);
-app.use("/api/pharmacies", pharmacyRoutes);
-app.use("/api/medicines", medicineRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/admin", adminRoutes);
+// --- MOUNT ROUTES ---
+// This one line handles everything!
+// e.g. /api/auth, /api/users, etc.
+app.use("/api", routes);
 
-// Base route for testing status
+// Base route
 app.get("/", (req, res) => {
   res.status(200).json({
     status: "success",
