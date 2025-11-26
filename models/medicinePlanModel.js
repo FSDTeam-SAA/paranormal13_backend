@@ -23,7 +23,7 @@ const medicinePlanSchema = new mongoose.Schema(
     },
     frequency: {
       type: String,
-      enum: ["daily", "weekly", "custom"],
+      enum: ["daily", "twiceDaily", "weekly", "custom"],
       default: "daily",
     },
     startDate: {
@@ -44,6 +44,10 @@ const medicinePlanSchema = new mongoose.Schema(
       },
     },
     instructions: {
+      type: String,
+      trim: true,
+    },
+    doctorNotes: {
       type: String,
       trim: true,
     },

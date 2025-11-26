@@ -2,6 +2,7 @@ import User from "../models/userModel.js";
 import FamilyMember from "../models/familyMemberModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
+import { pushNotification } from "../utils/notificationService.js";
 
 // 1. Get Current User Profile (with formatted dates)
 export const getMe = catchAsync(async (req, res, next) => {
@@ -105,6 +106,16 @@ export const sendFamilyRequest = catchAsync(async (req, res, next) => {
     status: 'pending'
   });
 
+  const requesterName = req.user?.name || 'A family member';
+  await pushNotification({
+    recipient: targetUser.id,
+    sender: req.user.id,
+    type: 'family',
+    title: 'New family member request',
+    message: `${requesterName} wants to add you as ${relationship || 'family'}.`,
+    meta: { requestId: newMember._id, relationship: relationship || 'Family' }
+  });
+
   res.status(201).json({
     status: 'success',
     message: 'Family request sent successfully',
@@ -134,6 +145,17 @@ export const respondToFamilyRequest = catchAsync(async (req, res, next) => {
 
   connection.status = status;
   await connection.save();
+
+  const responderName = req.user?.name || 'A family member';
+  const verb = status === 'accepted' ? 'accepted' : 'rejected';
+  await pushNotification({
+    recipient: connection.requester,
+    sender: req.user.id,
+    type: 'family',
+    title: `Family request ${status}`,
+    message: `${responderName} has ${verb} your family request.`,
+    meta: { requestId: connection._id, status }
+  });
 
   res.status(200).json({
     status: 'success',

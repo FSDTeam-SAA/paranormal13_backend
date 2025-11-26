@@ -2,6 +2,20 @@ import Appointment from "../models/appointmentModel.js";
 import DoctorSchedule from "../models/doctorScheduleModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
+import {
+  pushNotification,
+  pushNotifications,
+} from "../utils/notificationService.js";
+import { ensureConversation } from "../utils/chatService.js";
+
+const formatSlotLabel = (slot) => {
+  if (!slot) return "the selected time";
+  const dateValue =
+    slot.date instanceof Date ? slot.date : new Date(slot.date || Date.now());
+  const datePart = dateValue.toISOString().split("T")[0];
+  const timePart = slot.startTime || slot.endTime || "";
+  return timePart ? `${datePart} at ${timePart}` : datePart;
+};
 
 // 1. Create Appointment (Patient)
 export const createAppointment = catchAsync(async (req, res, next) => {
@@ -29,6 +43,34 @@ export const createAppointment = catchAsync(async (req, res, next) => {
     scheduleSlot: slotId,
     notes,
     status: "pending", // Default
+  });
+
+  const slotLabel = formatSlotLabel(slot);
+  const patientName = req.user?.name || "A patient";
+  await pushNotifications([
+    {
+      recipient: doctorId,
+      sender: req.user.id,
+      type: "appointment",
+      title: "New appointment request",
+      message: `${patientName} requested an appointment for ${slotLabel}.`,
+      meta: { appointmentId: appointment._id, slotId },
+    },
+    {
+      recipient: req.user.id,
+      sender: doctorId,
+      type: "appointment",
+      title: "Appointment booked",
+      message: `Your appointment for ${slotLabel} is awaiting confirmation.`,
+      meta: { appointmentId: appointment._id, slotId },
+    },
+  ]);
+
+  await ensureConversation({
+    participants: [req.user.id, doctorId],
+    topicType: "appointment",
+    contextId: appointment._id,
+    createdBy: req.user.id,
   });
 
   res.status(201).json({
@@ -112,8 +154,32 @@ export const cancelAppointment = catchAsync(async (req, res, next) => {
   await appointment.save();
 
   // B) Free up the slot so someone else can book
-  await DoctorSchedule.findByIdAndUpdate(appointment.scheduleSlot, {
-    isBooked: false,
+  let slot = await DoctorSchedule.findById(appointment.scheduleSlot);
+  if (slot) {
+    slot.isBooked = false;
+    await slot.save();
+  } else {
+    slot = await DoctorSchedule.findByIdAndUpdate(
+      appointment.scheduleSlot,
+      { isBooked: false },
+      { new: true }
+    );
+  }
+
+  const slotLabel = formatSlotLabel(slot);
+  const actorName = req.user?.name || "A user";
+  const recipientId =
+    appointment.patient.toString() === req.user.id
+      ? appointment.doctor
+      : appointment.patient;
+
+  await pushNotification({
+    recipient: recipientId,
+    sender: req.user.id,
+    type: "appointment",
+    title: "Appointment cancelled",
+    message: `${actorName} cancelled the appointment scheduled for ${slotLabel}.`,
+    meta: { appointmentId: appointment._id },
   });
 
   res.status(200).json({
@@ -137,6 +203,15 @@ export const markAppointmentCompleted = catchAsync(async (req, res, next) => {
   await appointment.save();
 
   // Note: We do NOT free up the slot here, because the time was actually used.
+  const slot = await DoctorSchedule.findById(appointment.scheduleSlot);
+  await pushNotification({
+    recipient: appointment.patient,
+    sender: req.user.id,
+    type: "appointment",
+    title: "Appointment completed",
+    message: `Your appointment for ${formatSlotLabel(slot)} is marked as completed.`,
+    meta: { appointmentId: appointment._id },
+  });
 
   res.status(200).json({
     status: "success",

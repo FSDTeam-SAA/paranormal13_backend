@@ -21,6 +21,9 @@ import pharmacyRoutes from "./routes/pharmacyRoutes.js";
 import medicineRoutes from "./routes/medicineRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
+import faqRoutes from "./routes/faqRoutes.js";
 
 const app = express();
 
@@ -69,6 +72,9 @@ app.use("/api/pharmacies", pharmacyRoutes);
 app.use("/api/medicines", medicineRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/chats", chatRoutes);
+app.use("/api/faqs", faqRoutes);
 
 // Base route for testing status
 app.get("/", (req, res) => {

@@ -3,8 +3,11 @@ import {
   createMedicinePlan,
   getMyMedicinePlans,
   getTodayPlans,
+  getTodayTimeline,
+  getFamilyMemberTodayTimeline,
   updateMedicinePlan,
   deleteMedicinePlan,
+  recordMedicineAction,
 } from "../controllers/medicineController.js";
 import { protect, restrictTo } from "../middleware/authMiddleware.js";
 
@@ -18,6 +21,10 @@ router.route("/")
   .get(getMyMedicinePlans);
 
 router.get("/today", getTodayPlans);
+router.get("/today/timeline", getTodayTimeline);
+router.get("/family/:familyMemberId/today", getFamilyMemberTodayTimeline);
+
+router.post("/:id/logs", recordMedicineAction);
 
 router.route("/:id")
   .patch(updateMedicinePlan)
