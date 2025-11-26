@@ -12,6 +12,8 @@ import adminRoutes from "./adminRoutes.js";
 import reviewRoutes from "./reviewRoutes.js";
 import notificationRoutes from "./notificationRoutes.js";
 import messageRoutes from "./messageRoutes.js";
+import medicineLogRoutes from "./medicineLogRoutes.js";
+import medicinePlanRoutes from "./medicinePlanRoutes.js";
 
 const router = express.Router();
 
@@ -28,5 +30,7 @@ router.use("/admin", adminRoutes);
 router.use("/reviews", reviewRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/messages", messageRoutes);
+router.use("/medicine-logs", medicineLogRoutes);
+router.use("/medicine-plans", medicinePlanRoutes);
 
 export default router;

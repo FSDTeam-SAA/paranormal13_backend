@@ -5,7 +5,7 @@ import AppError from "../utils/appError.js";
 
 // 1. Get Dashboard Stats
 export const getDashboardStats = catchAsync(async (req, res, next) => {
-  // Run queries in parallel for performance
+  // A. Basic Counts
   const [totalPatients, totalDoctors, totalPharmacists, recentOrders] =
     await Promise.all([
       User.countDocuments({ role: "patient" }),
@@ -13,6 +13,48 @@ export const getDashboardStats = catchAsync(async (req, res, next) => {
       User.countDocuments({ role: "pharmacist" }),
       Order.find().sort("-createdAt").limit(5).populate("patient", "name"),
     ]);
+
+  // B. Sell Report (Graph Data) - Group Orders by Month
+  // We look at the last 6 months
+  const salesStats = await Order.aggregate([
+    {
+      $match: {
+        createdAt: {
+          $gte: new Date(new Date().setMonth(new Date().getMonth() - 6)),
+        },
+        status: "delivered", // Only count completed sales
+      },
+    },
+    {
+      $group: {
+        _id: { $month: "$createdAt" }, // Group by Month Number (1-12)
+        count: { $sum: 1 }, // Count orders
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
+
+  // Format for Frontend (Map 1 -> Jan, 2 -> Feb, etc.)
+  const months = [
+    "",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const formattedSales = salesStats.map((item) => ({
+    month: months[item._id],
+    orders: item.count,
+  }));
 
   res.status(200).json({
     status: "success",
@@ -22,16 +64,15 @@ export const getDashboardStats = catchAsync(async (req, res, next) => {
         totalDoctors,
         totalPharmacists,
       },
+      salesReport: formattedSales,
       recentOrders,
     },
   });
 });
 
-// 2. Get Users by Role (e.g., ?role=doctor)
+// 2. Get Users by Role
 export const getUsersByRole = catchAsync(async (req, res, next) => {
   const { role } = req.query;
-
-  // Default to patients if no role specified
   const filter = role ? { role } : { role: "patient" };
 
   const users = await User.find(filter)
@@ -50,10 +91,9 @@ export const updateUserStatus = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const { doctorStatus, active } = req.body;
 
-  // We only allow updating specific administrative fields here
   const updateData = {};
-  if (doctorStatus) updateData.doctorStatus = doctorStatus; // 'approved', 'rejected'
-  if (active !== undefined) updateData.active = active; // true, false
+  if (doctorStatus) updateData.doctorStatus = doctorStatus;
+  if (active !== undefined) updateData.active = active;
 
   const user = await User.findByIdAndUpdate(id, updateData, {
     new: true,
