@@ -1,9 +1,17 @@
 import Order from "../models/orderModel.js";
+import Pharmacy from "../models/pharmacyModel.js";
 import catchAsync from "../utils/catchAsync.js";
+import AppError from "../utils/appError.js";
 
-// Patient creates order
+// 1. Create Order (Patient)
 export const createOrder = catchAsync(async (req, res, next) => {
   const { pharmacyId, medicines, address, lat, lng } = req.body;
+
+  if (!lat || !lng) {
+    return next(
+      new AppError("Delivery location coordinates are required", 400)
+    );
+  }
 
   const order = await Order.create({
     patient: req.user.id,
@@ -11,59 +19,112 @@ export const createOrder = catchAsync(async (req, res, next) => {
     medicines,
     address,
     location: {
-      type: 'Point',
-      coordinates: [lng, lat]
-    }
+      type: "Point",
+      coordinates: [lng, lat],
+    },
+    status: "pending",
   });
 
   res.status(201).json({
-    status: 'success',
-    data: { order }
+    status: "success",
+    data: { order },
   });
 });
 
-// Patient orders
+// 2. Get My Orders (Patient History)
 export const getMyOrders = catchAsync(async (req, res, next) => {
   const orders = await Order.find({ patient: req.user.id })
-    .populate('pharmacy', 'name address')
-    .sort('-createdAt');
+    .populate("pharmacy", "name address phone")
+    .sort("-createdAt");
 
   res.status(200).json({
-    status: 'success',
+    status: "success",
     results: orders.length,
-    data: { orders }
+    data: { orders },
   });
 });
 
-// Pharmacy orders
+// 3. Get My Pharmacy's Orders (List)
 export const getMyPharmacyOrders = catchAsync(async (req, res, next) => {
   const orders = await Order.find()
     .populate({
-      path: 'pharmacy',
-      match: { owner: req.user.id }
+      path: "pharmacy",
+      match: { owner: req.user.id },
+      select: "name owner",
     })
-    .populate('patient', 'name')
-    .sort('-createdAt');
+    .populate("patient", "name phone avatarUrl")
+    .sort("-createdAt");
 
-  const filtered = orders.filter(order => order.pharmacy);
+  const myOrders = orders.filter((order) => order.pharmacy !== null);
 
   res.status(200).json({
-    status: 'success',
-    results: filtered.length,
-    data: { orders: filtered }
+    status: "success",
+    results: myOrders.length,
+    data: { orders: myOrders },
   });
 });
 
-// Pharmacy updates status
+// 4. Update Order Status
 export const updateOrderStatus = catchAsync(async (req, res, next) => {
+  const { status } = req.body;
+
   const order = await Order.findByIdAndUpdate(
     req.params.id,
-    { status: req.body.status },
+    { status },
     { new: true }
   );
 
+  if (!order) {
+    return next(new AppError("Order not found", 404));
+  }
+
   res.status(200).json({
-    status: 'success',
-    data: { order }
+    status: "success",
+    data: { order },
+  });
+});
+
+// 5. Get Pharmacist Dashboard (Stats & Lists)
+export const getPharmacistDashboard = catchAsync(async (req, res, next) => {
+  const pharmacy = await Pharmacy.findOne({ owner: req.user.id });
+
+  if (!pharmacy) {
+    return next(new AppError("You do not have a pharmacy set up yet.", 404));
+  }
+
+  const totalOrders = await Order.countDocuments({ pharmacy: pharmacy._id });
+  const deliveredOrdersCount = await Order.countDocuments({
+    pharmacy: pharmacy._id,
+    status: "delivered",
+  });
+
+  const recentOrders = await Order.find({
+    pharmacy: pharmacy._id,
+    status: { $nin: ["delivered", "cancelled"] },
+  })
+    .populate("patient", "name avatarUrl")
+    .sort("-createdAt");
+
+  const deliveredOrders = await Order.find({
+    pharmacy: pharmacy._id,
+    status: "delivered",
+  })
+    .populate("patient", "name avatarUrl")
+    .sort("-updatedAt");
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      pharmacyName: pharmacy.name,
+      pharmacistName: req.user.name,
+      stats: {
+        total: totalOrders,
+        delivered: deliveredOrdersCount,
+      },
+      lists: {
+        recent: recentOrders,
+        delivered: deliveredOrders,
+      },
+    },
   });
 });

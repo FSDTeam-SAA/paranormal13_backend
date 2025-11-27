@@ -1,21 +1,29 @@
 import express from "express";
-import { getDoctors, getDoctor } from "../controllers/doctorController.js";
-import { getSlotsForDoctor } from "../controllers/scheduleController.js";
-import { protect } from "../middleware/authMiddleware.js";
+import * as doctorController from "../controllers/doctorController.js";
+import * as scheduleController from "../controllers/scheduleController.js";
+import { protect, restrictTo } from "../middleware/authMiddleware.js";
+import reviewRoutes from "./reviewRoutes.js";
 
 const router = express.Router();
 
-// 1. Public / Protected Routes (Patients searching for doctors)
 router.use(protect);
 
-// Get all doctors (with search & filters)
-router.get("/", getDoctors);
+// --- DOCTOR DASHBOARD (New Feature) ---
+router.get(
+  "/dashboard",
+  restrictTo("doctor"),
+  doctorController.getDoctorDashboard
+);
 
-// Get specific doctor details
-router.get("/:id", getDoctor);
+// --- SEARCH DOCTORS ---
+router.get("/", doctorController.getDoctors);
+router.get("/:id", doctorController.getDoctor);
 
-// 2. Doctor Schedule (Slots)
-// A patient needs to see a specific doctor's available slots
-router.get("/:doctorId/slots", getSlotsForDoctor);
+// --- SCHEDULES ---
+router.get("/:doctorId/slots", scheduleController.getSlotsForDoctor);
+
+// Add this line somewhere in the middle (before the export default)
+// This tells Express: "If you see a route ending in /reviews, hand it over to the reviewRouter"
+router.use("/:doctorId/reviews", reviewRoutes);
 
 export default router;

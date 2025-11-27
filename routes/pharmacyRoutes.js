@@ -1,18 +1,18 @@
 import express from "express";
-import {
-  getNearbyPharmacies,
-  upsertMyPharmacy,
-} from "../controllers/pharmacyController.js";
+import * as pharmacyController from "../controllers/pharmacyController.js";
 import { protect, restrictTo } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// public: list nearby
-router.get("/nearby", getNearbyPharmacies);
+// 1. Get Nearby Pharmacies (Public or Protected, depending on preference)
+// Usually protected so we know the user's location, but can be public if lat/lng sent in query
+router.get("/nearby", pharmacyController.getNearbyPharmacies);
 
-// pharmacy owner
-router.use(protect, restrictTo("pharmacist"));
+// 2. Pharmacy Management (Pharmacist Only)
+router.use(protect);
+router.use(restrictTo("pharmacist"));
 
-router.post("/me", upsertMyPharmacy);
+// Create or Update "My Pharmacy"
+router.post("/", pharmacyController.upsertMyPharmacy);
 
 export default router;

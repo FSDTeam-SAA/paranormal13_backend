@@ -8,6 +8,7 @@ import {
   resetPassword,
   updatePassword,
 } from "../controllers/authController.js";
+import * as socialAuthController from "../controllers/socialAuthController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -27,5 +28,7 @@ router.use(protect);
 // Note: '/me' route has been moved to userRoutes.js
 
 router.patch("/updateMyPassword", updatePassword);
+
+router.post("/google", socialAuthController.googleAuth);
 
 export default router;
