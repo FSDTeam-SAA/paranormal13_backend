@@ -1,12 +1,6 @@
 import User from "../models/userModel.js";
 import catchAsync from "../utils/catchAsync.js";
-import jwt from "jsonwebtoken";
-
-const signToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
-};
+import { issueAuthTokens } from "../utils/tokenService.js";
 
 // Mock Google Auth
 export const googleAuth = catchAsync(async (req, res, next) => {
@@ -27,12 +21,6 @@ export const googleAuth = catchAsync(async (req, res, next) => {
     });
   }
 
-  // 3. Send Token
-  const token = signToken(user._id);
-
-  res.status(200).json({
-    status: "success",
-    token,
-    data: { user },
-  });
+  // 3. Send token pair
+  await issueAuthTokens(user, 200, res);
 });

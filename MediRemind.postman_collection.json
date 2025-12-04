@@ -1,0 +1,1910 @@
+{
+  "info": {
+    "_postman_id": "66a17935-ab72-4892-85bb-9b3b351bb901",
+    "name": "MediRemind API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Complete Postman collection for the MediRemind backend. Each folder groups endpoints by functional module with role and auth notes."
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Authentication, password reset, and social login endpoints.",
+      "item": [
+        {
+          "name": "Sign Up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/signup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            },
+            "description": "Register a new patient, doctor, pharmacist, or admin account.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"Passw0rd!\",\n  \"passwordConfirm\": \"Passw0rd!\",\n  \"role\": \"patient\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Authenticate a user and receive JWT + cookie.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane@example.com\",\n  \"password\": \"Passw0rd!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Clear the authentication cookie for the current session."
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/forgotPassword",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "forgotPassword"
+              ]
+            },
+            "description": "Trigger a 6-digit reset code email.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Reset Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/verifyResetCode",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "verifyResetCode"
+              ]
+            },
+            "description": "Verify the OTP sent to the user email.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane@example.com\",\n  \"resetCode\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/resetPassword",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "resetPassword"
+              ]
+            },
+            "description": "Submit the code plus new password to finish the reset flow.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane@example.com\",\n  \"resetCode\": \"123456\",\n  \"newPassword\": \"NewPassw0rd!\",\n  \"newPasswordConfirm\": \"NewPassw0rd!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update My Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/updateMyPassword",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "updateMyPassword"
+              ]
+            },
+            "description": "Protected route for logged-in users to rotate their password.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"passwordCurrent\": \"Passw0rd!\",\n  \"password\": \"NewPassw0rd!\",\n  \"passwordConfirm\": \"NewPassw0rd!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Google OAuth Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/google",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "google"
+              ]
+            },
+            "description": "Exchange a Google ID token for an application session.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"GOOGLE_ID_TOKEN\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "Authenticated profile management plus family connection flows.",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Return the authenticated user's profile, role, and linked data."
+          },
+          "response": []
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Update profile fields and optionally upload an avatar using multipart form data.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Jane Doe",
+                  "type": "text"
+                },
+                {
+                  "key": "phone",
+                  "value": "+15555551212",
+                  "type": "text"
+                },
+                {
+                  "key": "about",
+                  "value": "Patient focused on heart health",
+                  "type": "text"
+                },
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Family Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/family/request",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "family",
+                "request"
+              ]
+            },
+            "description": "Invite another user (typically a relative) to share medicine plans.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberEmail\": \"dad@example.com\",\n  \"relationship\": \"father\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Respond to Family Request",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/family/request/{{requestId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "family",
+                "request",
+                "{{requestId}}"
+              ]
+            },
+            "description": "Accept or reject an incoming family connection request.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"accepted\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List My Family Members",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/family",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "family"
+              ]
+            },
+            "description": "Fetch confirmed family connections for the logged-in user."
+          },
+          "response": []
+        },
+        {
+          "name": "List Pending Family Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/family/requests/received",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "family",
+                "requests",
+                "received"
+              ]
+            },
+            "description": "View incoming connection requests awaiting action."
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Family Member",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/family/{{memberId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "family",
+                "{{memberId}}"
+              ]
+            },
+            "description": "Break a family link so their plans are hidden again."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Doctors",
+      "description": "Doctor discovery, slots, dashboard, and nested reviews.",
+      "item": [
+        {
+          "name": "Doctor Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/doctors/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "doctors",
+                "dashboard"
+              ]
+            },
+            "description": "Doctor-only stats for appointments, patients, and reviews (requires doctor role)."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Doctors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/doctors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "doctors"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "dermatology"
+                },
+                {
+                  "key": "specialization",
+                  "value": "skin"
+                }
+              ]
+            },
+            "description": "Public doctor search with keyword and specialization filters."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Doctor Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/doctors/{{doctorId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "doctors",
+                "{{doctorId}}"
+              ]
+            },
+            "description": "Detailed doctor profile used on the provider detail screen."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Doctor Slots",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/doctors/{{doctorId}}/slots",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "doctors",
+                "{{doctorId}}",
+                "slots"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2025-01-20"
+                }
+              ]
+            },
+            "description": "List available slots for a doctor on a specific day."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Doctor Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/doctors/{{doctorId}}/reviews",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "doctors",
+                "{{doctorId}}",
+                "reviews"
+              ]
+            },
+            "description": "Public list of patient reviews scoped to a specific doctor."
+          },
+          "response": []
+        },
+        {
+          "name": "Add Review for Doctor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/doctors/{{doctorId}}/reviews",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "doctors",
+                "{{doctorId}}",
+                "reviews"
+              ]
+            },
+            "description": "Patients can leave a review for a doctor they visited.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Very attentive\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Schedules",
+      "description": "Doctor-only slot management endpoints.",
+      "item": [
+        {
+          "name": "Create Schedule Slot",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedules",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedules"
+              ]
+            },
+            "description": "Doctor creates an available slot (must be approved doctor).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2025-01-20\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"12:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List My Slots",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedules",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedules"
+              ]
+            },
+            "description": "Doctor lists every slot they created."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Slot",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/schedules/{{slotId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "schedules",
+                "{{slotId}}"
+              ]
+            },
+            "description": "Remove an unused slot from the doctor's calendar."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "description": "Booking lifecycle for both patients and doctors.",
+      "item": [
+        {
+          "name": "Book Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/appointments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "appointments"
+              ]
+            },
+            "description": "Patients select a doctor slot to confirm an appointment.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": \"{{doctorId}}\",\n  \"slotId\": \"{{slotId}}\",\n  \"reason\": \"Follow-up visit\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Appointments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/appointments/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "appointments",
+                "me"
+              ]
+            },
+            "description": "Patient's upcoming and past appointments."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Doctor Appointments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/appointments/doctor/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "appointments",
+                "doctor",
+                "me"
+              ]
+            },
+            "description": "Doctor view of today's and upcoming bookings (requires approved doctor)."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Appointment Completed",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/appointments/{{appointmentId}}/complete",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "appointments",
+                "{{appointmentId}}",
+                "complete"
+              ]
+            },
+            "description": "Doctor marks an appointment as completed after consulting."
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Appointment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/appointments/{{appointmentId}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "appointments",
+                "{{appointmentId}}",
+                "cancel"
+              ]
+            },
+            "description": "Patient or doctor can cancel with an optional reason.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Patient is unavailable\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pharmacies",
+      "description": "Nearby search plus pharmacist-managed store profile.",
+      "item": [
+        {
+          "name": "Get Nearby Pharmacies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pharmacies/nearby",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pharmacies",
+                "nearby"
+              ],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "37.7749"
+                },
+                {
+                  "key": "lng",
+                  "value": "-122.4194"
+                },
+                {
+                  "key": "maxDistanceKm",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Public endpoint returning pharmacies ordered by distance."
+          },
+          "response": []
+        },
+        {
+          "name": "Create or Update My Pharmacy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pharmacies",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pharmacies"
+              ]
+            },
+            "description": "Pharmacist creates/updates their store profile.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"City Care Pharmacy\",\n  \"managerName\": \"Alex Pharmacist\",\n  \"address\": \"500 Market St, SF\",\n  \"lat\": 37.7749,\n  \"lng\": -122.4194\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Medicines (Patient)",
+      "description": "Legacy patient-only medicine reminder controller mounted at /medicines.",
+      "item": [
+        {
+          "name": "Create Medicine Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/medicines",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "medicines"
+              ]
+            },
+            "description": "Patients define a medicine reminder plan.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Amoxicillin\",\n  \"dosage\": \"500mg\",\n  \"frequency\": \"twice-daily\",\n  \"startDate\": \"2025-01-01\",\n  \"endDate\": \"2025-01-10\",\n  \"timesOfDay\": [\n    \"09:00\",\n    \"21:00\"\n  ],\n  \"instructions\": \"Take after food\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List My Plans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/medicines",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "medicines"
+              ]
+            },
+            "description": "Return all active medicine reminders for the patient."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Today's Plans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/medicines/today",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "medicines",
+                "today"
+              ]
+            },
+            "description": "Convenience endpoint to show only meds scheduled for today."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Medicine Plan",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/medicines/{{medicinePlanId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "medicines",
+                "{{medicinePlanId}}"
+              ]
+            },
+            "description": "Modify timing, dosage, or instructions for a plan.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dosage\": \"250mg\",\n  \"timesOfDay\": [\n    \"10:00\",\n    \"22:00\"\n  ],\n  \"instructions\": \"Reduce dosage\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Medicine Plan",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/medicines/{{medicinePlanId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "medicines",
+                "{{medicinePlanId}}"
+              ]
+            },
+            "description": "Remove a medicine reminder plan permanently."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Medicine Plans",
+      "description": "Family-aware plan CRUD mounted at /medicine-plans.",
+      "item": [
+        {
+          "name": "Create Medicine Plan (v2)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/medicine-plans",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "medicine-plans"
+              ]
+            },
+            "description": "Create a medicine plan using the new medicinePlan controller.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Vitamin D\",\n  \"dosage\": \"2000 IU\",\n  \"schedule\": {\n    \"timesOfDay\": [\n      \"08:00\"\n    ],\n    \"days\": [\n      \"mon\",\n      \"wed\",\n      \"fri\"\n    ]\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Medicine Plans (v2)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/medicine-plans",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "medicine-plans"
+              ]
+            },
+            "description": "Return plans created via the new controller."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Family Member Plans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/medicine-plans/family/{{memberId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "medicine-plans",
+                "family",
+                "{{memberId}}"
+              ]
+            },
+            "description": "View plans belonging to an accepted family member."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Medicine Plan (v2)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/medicine-plans/{{medicinePlanId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "medicine-plans",
+                "{{medicinePlanId}}"
+              ]
+            },
+            "description": "Update plan metadata or schedule fields.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"instructions\": \"Take with juice\",\n  \"active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Medicine Plan (v2)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/medicine-plans/{{medicinePlanId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "medicine-plans",
+                "{{medicinePlanId}}"
+              ]
+            },
+            "description": "Delete a plan created under the new controller."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Medicine Logs",
+      "description": "Endpoints powering the adherence dashboard.",
+      "item": [
+        {
+          "name": "Log Medicine Action",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/medicine-logs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "medicine-logs"
+              ]
+            },
+            "description": "Patient confirms they took or skipped a scheduled dose.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"{{medicinePlanId}}\",\n  \"action\": \"taken\",\n  \"timestamp\": \"2025-01-20T09:05:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Daily Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/medicine-logs/stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "medicine-logs",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2025-01-20"
+                }
+              ]
+            },
+            "description": "Summary of taken/missed meds for a specific day."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "description": "Patient ordering flow plus pharmacist dashboards.",
+      "item": [
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "Patient submits an order to a pharmacy including delivery info.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pharmacyId\": \"{{pharmacyId}}\",\n  \"medicines\": [\n    {\n      \"name\": \"Ibuprofen\",\n      \"dosage\": \"200mg\",\n      \"quantity\": 20\n    },\n    {\n      \"name\": \"Cough Syrup\",\n      \"dosage\": \"10ml\",\n      \"quantity\": 1\n    }\n  ],\n  \"address\": \"221B Baker Street\",\n  \"lat\": 51.5238,\n  \"lng\": -0.1586\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "orders",
+                "me"
+              ]
+            },
+            "description": "Patient order history with statuses."
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Pharmacy Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/pharmacy/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "orders",
+                "pharmacy",
+                "me"
+              ]
+            },
+            "description": "Pharmacist view of orders targeted to their store."
+          },
+          "response": []
+        },
+        {
+          "name": "Pharmacist Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/pharmacy/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "orders",
+                "pharmacy",
+                "dashboard"
+              ]
+            },
+            "description": "Aggregated stats for a pharmacist's business dashboard."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Order Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/{{orderId}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderId}}",
+                "status"
+              ]
+            },
+            "description": "Pharmacist updates an order status (pending, accepted, delivering, delivered, cancelled).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"accepted\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "description": "Admin protected routes (requires admin role).",
+      "item": [
+        {
+          "name": "Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "stats"
+              ]
+            },
+            "description": "Admin-only KPIs for the control panel."
+          },
+          "response": []
+        },
+        {
+          "name": "List Users By Role",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "doctor"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Paginated list filtered by role for moderation."
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/users/{{userId}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "{{userId}}",
+                "status"
+              ]
+            },
+            "description": "Approve doctors or toggle any user's active flag.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorStatus\": \"approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "description": "Standalone review endpoints also mounted under /doctors/:doctorId/reviews.",
+      "item": [
+        {
+          "name": "List All Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reviews",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reviews"
+              ]
+            },
+            "description": "Public list of reviews regardless of doctor context."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Review (Global)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reviews",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reviews"
+              ]
+            },
+            "description": "Alternative endpoint to create a review by providing doctor reference in body.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctor\": \"{{doctorId}}\",\n  \"rating\": 4,\n  \"comment\": \"Great bedside manner\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "description": "Notification center actions for any role.",
+      "item": [
+        {
+          "name": "Get My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            },
+            "description": "Fetch unread and read notifications for the logged-in user."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/{{notificationId}}/read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "{{notificationId}}",
+                "read"
+              ]
+            },
+            "description": "Mark a single notification as read."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark All Notifications Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/read-all",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "read-all"
+              ]
+            },
+            "description": "Bulk mark every notification as read."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "description": "Socket-backed chat REST helpers.",
+      "item": [
+        {
+          "name": "Send Chat Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/messages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "messages"
+              ]
+            },
+            "description": "Send a text or image message between two users.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "recipientId",
+                  "value": "{{userId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "text",
+                  "value": "Hello, thanks for the consultation",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Chat List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/messages/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "messages",
+                "list"
+              ]
+            },
+            "description": "Inbox-style list ordered by most recent activity."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Chat History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "type": "text",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/messages/history/{{userId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "messages",
+                "history",
+                "{{userId}}"
+              ]
+            },
+            "description": "Retrieve the full conversation between the authenticated user and another participant."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string",
+      "description": "Base API URL"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string",
+      "description": "JWT used for Bearer authorization"
+    }
+  ]
+}

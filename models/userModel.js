@@ -32,6 +32,14 @@ const userSchema = new mongoose.Schema(
       minlength: 8,
       select: false,
     },
+    refreshToken: {
+      type: String,
+      select: false,
+    },
+    refreshTokenExpires: {
+      type: Date,
+      select: false,
+    },
     avatarUrl: {
       type: String,
       default: "default.jpg",

@@ -8,38 +8,12 @@ import {
   passwordResetTemplate,
   welcomeTemplate,
 } from "../utils/emailTemplates.js";
+import { hashToken, issueAuthTokens } from "../utils/tokenService.js";
 
-const signToken = id => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN
-  });
-};
-
-const createSendToken = (user, statusCode, res) => {
-  const token = signToken(user._id);
-
-  const cookieOptions = {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true, // Prevent browser JS from reading cookie
-    secure: process.env.NODE_ENV === 'production' // Only send on HTTPS in prod
-  };
-
-  res.cookie('jwt', token, cookieOptions);
-
-  // Remove sensitive data from output
-  user.password = undefined;
-  user.passwordResetCode = undefined;
-  user.passwordResetExpires = undefined;
-  user.active = undefined;
-
-  res.status(statusCode).json({
-    status: 'success',
-    token,
-    data: { user }
-  });
-};
+const getIncomingRefreshToken = (req) =>
+  req.cookies?.refreshToken ||
+  req.body?.refreshToken ||
+  req.headers["x-refresh-token"];
 
 // --- AUTH CONTROLLERS ---
 
@@ -68,7 +42,7 @@ export const signup = catchAsync(async (req, res, next) => {
       console.log('Welcome email failed to send:', err.message);
   }
 
-  createSendToken(newUser, 201, res);
+  await issueAuthTokens(newUser, 201, res);
 });
 
 export const login = catchAsync(async (req, res, next) => {
@@ -87,17 +61,69 @@ export const login = catchAsync(async (req, res, next) => {
   }
 
   // 3) If everything ok, send token to client
-  createSendToken(user, 200, res);
+  await issueAuthTokens(user, 200, res);
 });
 
-export const logout = (req, res) => {
-  // Overwrite cookie with dummy data
-  res.cookie('jwt', 'loggedout', {
-    expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true
+export const logout = catchAsync(async (req, res, next) => {
+  const refreshToken = getIncomingRefreshToken(req);
+
+  if (refreshToken) {
+    const hashed = hashToken(refreshToken);
+    await User.findOneAndUpdate(
+      { refreshToken: hashed },
+      { refreshToken: undefined, refreshTokenExpires: undefined }
+    );
+  }
+
+  const isProduction = process.env.NODE_ENV === "production";
+  const sameSite = isProduction ? "none" : "lax";
+  const expiredCookieOptions = {
+    expires: new Date(0),
+    httpOnly: true,
+    secure: isProduction,
+    sameSite,
+  };
+
+  res.cookie("jwt", "", expiredCookieOptions);
+  res.cookie("refreshToken", "", expiredCookieOptions);
+
+  res.status(200).json({
+    status: "success",
+    message: "Logged out successfully.",
   });
-  res.status(200).json({ status: 'success' });
-};
+});
+
+export const refreshAccessToken = catchAsync(async (req, res, next) => {
+  const incomingToken = getIncomingRefreshToken(req);
+
+  if (!incomingToken) {
+    return next(new AppError("Refresh token missing.", 401));
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(
+      incomingToken,
+      process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET
+    );
+  } catch (err) {
+    return next(new AppError("Invalid or expired refresh token.", 401));
+  }
+
+  const hashed = hashToken(incomingToken);
+
+  const user = await User.findOne({
+    _id: decoded.id,
+    refreshToken: hashed,
+    refreshTokenExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return next(new AppError("Refresh token is no longer valid.", 401));
+  }
+
+  await issueAuthTokens(user, 200, res);
+});
 
 // --- PASSWORD RESET FLOW ---
 
@@ -182,7 +208,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   // 4) Log the user in (send token)
-  createSendToken(user, 200, res);
+  await issueAuthTokens(user, 200, res);
 });
 
 export const updatePassword = catchAsync(async (req, res, next) => {
@@ -199,5 +225,5 @@ export const updatePassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   // 4) Log user in (send new token)
-  createSendToken(user, 200, res);
+  await issueAuthTokens(user, 200, res);
 });
