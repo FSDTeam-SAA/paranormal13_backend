@@ -2,10 +2,10 @@ import User from "../models/userModel.js";
 import Order from "../models/orderModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
+import { sendResponse } from "../utils/responseHandler.js";
 
 // 1. Get Dashboard Stats
 export const getDashboardStats = catchAsync(async (req, res, next) => {
-  // A. Basic Counts
   const [totalPatients, totalDoctors, totalPharmacists, recentOrders] =
     await Promise.all([
       User.countDocuments({ role: "patient" }),
@@ -14,41 +14,27 @@ export const getDashboardStats = catchAsync(async (req, res, next) => {
       Order.find().sort("-createdAt").limit(5).populate("patient", "name"),
     ]);
 
-  // B. Sell Report (Graph Data) - Group Orders by Month
-  // We look at the last 6 months
   const salesStats = await Order.aggregate([
     {
       $match: {
         createdAt: {
           $gte: new Date(new Date().setMonth(new Date().getMonth() - 6)),
         },
-        status: "delivered", // Only count completed sales
+        status: "delivered",
       },
     },
     {
       $group: {
-        _id: { $month: "$createdAt" }, // Group by Month Number (1-12)
-        count: { $sum: 1 }, // Count orders
+        _id: { $month: "$createdAt" },
+        count: { $sum: 1 },
       },
     },
     { $sort: { _id: 1 } },
   ]);
 
-  // Format for Frontend (Map 1 -> Jan, 2 -> Feb, etc.)
   const months = [
-    "",
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    "", "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
   ];
 
   const formattedSales = salesStats.map((item) => ({
@@ -56,17 +42,14 @@ export const getDashboardStats = catchAsync(async (req, res, next) => {
     orders: item.count,
   }));
 
-  res.status(200).json({
-    status: "success",
-    data: {
-      stats: {
-        totalPatients,
-        totalDoctors,
-        totalPharmacists,
-      },
-      salesReport: formattedSales,
-      recentOrders,
+  sendResponse(res, 200, "Admin stats retrieved successfully", {
+    stats: {
+      totalPatients,
+      totalDoctors,
+      totalPharmacists,
     },
+    salesReport: formattedSales,
+    recentOrders,
   });
 });
 
@@ -79,14 +62,10 @@ export const getUsersByRole = catchAsync(async (req, res, next) => {
     .select("name email phone role doctorStatus active avatarUrl createdAt")
     .sort("-createdAt");
 
-  res.status(200).json({
-    status: "success",
-    results: users.length,
-    data: { users },
-  });
+  sendResponse(res, 200, "Users retrieved successfully", { users });
 });
 
-// 3. Update User Status (Approve Doctor / Ban User)
+// 3. Update User Status
 export const updateUserStatus = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const { doctorStatus, active } = req.body;
@@ -104,8 +83,5 @@ export const updateUserStatus = catchAsync(async (req, res, next) => {
     return next(new AppError("User not found", 404));
   }
 
-  res.status(200).json({
-    status: "success",
-    data: { user },
-  });
+  sendResponse(res, 200, "User status updated successfully", { user });
 });

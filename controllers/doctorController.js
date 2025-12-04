@@ -3,6 +3,7 @@ import Appointment from "../models/appointmentModel.js";
 import DoctorSchedule from "../models/doctorScheduleModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
+import { sendResponse } from "../utils/responseHandler.js";
 
 // 1. Get All Doctors (Search & Filter)
 export const getDoctors = catchAsync(async (req, res, next) => {
@@ -29,14 +30,9 @@ export const getDoctors = catchAsync(async (req, res, next) => {
     "name specialization hospitalName avatarUrl experienceYears location doctorStatus rating"
   );
 
-  res.status(200).json({
-    status: "success",
-    results: doctors.length,
-    data: { doctors },
-  });
+  sendResponse(res, 200, "Doctors retrieved successfully", { doctors });
 });
 
-// 2. Get Single Doctor Profile
 export const getDoctor = catchAsync(async (req, res, next) => {
   const doctor = await User.findOne({
     _id: req.params.id,
@@ -48,17 +44,12 @@ export const getDoctor = catchAsync(async (req, res, next) => {
     return next(new AppError("No approved doctor found with that ID", 404));
   }
 
-  res.status(200).json({
-    status: "success",
-    data: { doctor },
-  });
+  sendResponse(res, 200, "Doctor profile retrieved successfully", { doctor });
 });
 
-// 3. Get Doctor Dashboard Stats & Lists
 export const getDoctorDashboard = catchAsync(async (req, res, next) => {
   const doctorId = req.user.id;
 
-  // A. Calculate Stats
   const totalAppointments = await Appointment.countDocuments({
     doctor: doctorId,
   });
@@ -68,13 +59,11 @@ export const getDoctorDashboard = catchAsync(async (req, res, next) => {
     status: "completed",
   });
 
-  // For "Today", we need to find slots that match today's date
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const todayEnd = new Date();
   todayEnd.setHours(23, 59, 59, 999);
 
-  // Find slots for today first
   const todaySlots = await DoctorSchedule.find({
     doctor: doctorId,
     date: { $gte: todayStart, $lte: todayEnd },
@@ -87,7 +76,6 @@ export const getDoctorDashboard = catchAsync(async (req, res, next) => {
     scheduleSlot: { $in: todaySlotIds },
   });
 
-  // B. Get Lists (Upcoming & Taken/Completed)
   const upcomingAppointments = await Appointment.find({
     doctor: doctorId,
     status: { $in: ["pending", "confirmed"] },
@@ -106,18 +94,15 @@ export const getDoctorDashboard = catchAsync(async (req, res, next) => {
     .sort("-updatedAt")
     .limit(5);
 
-  res.status(200).json({
-    status: "success",
-    data: {
-      stats: {
-        total: totalAppointments,
-        completed: completedAppointments,
-        today: todayAppointments,
-      },
-      lists: {
-        upcoming: upcomingAppointments,
-        taken: takenAppointments,
-      },
+  sendResponse(res, 200, "Dashboard data retrieved successfully", {
+    stats: {
+      total: totalAppointments,
+      completed: completedAppointments,
+      today: todayAppointments,
+    },
+    lists: {
+      upcoming: upcomingAppointments,
+      taken: takenAppointments,
     },
   });
 });

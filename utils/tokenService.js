@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import { sendResponse } from "./responseHandler.js";
 
 const daysToMs = (days) => Number(days) * 24 * 60 * 60 * 1000;
 
@@ -68,19 +69,26 @@ const attachAuthCookies = (res, accessToken, refreshToken) => {
 export const hashToken = (token) =>
   crypto.createHash("sha256").update(token).digest("hex");
 
-export const issueAuthTokens = async (user, statusCode, res) => {
+// Updated to accept a custom 'message'
+export const issueAuthTokens = async (
+  user,
+  statusCode,
+  res,
+  message = "Authentication successful"
+) => {
   const accessToken = signAccessToken(user._id);
   const refreshToken = signRefreshToken(user._id);
 
   await persistRefreshToken(user, refreshToken);
   sanitizeUserForResponse(user);
   attachAuthCookies(res, accessToken, refreshToken);
-
-  res.status(statusCode).json({
-    status: "success",
-    token: accessToken,
+  const payload = {
     accessToken,
     refreshToken,
-    data: { user },
-  });
+    role: user.role,
+    _id: user._id,
+    user,
+  };
+
+  sendResponse(res, statusCode, message, payload);
 };

@@ -2,18 +2,16 @@ import MedicinePlan from "../models/medicinePlanModel.js";
 import FamilyMember from "../models/familyMemberModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
+import { sendResponse } from "../utils/responseHandler.js";
 
-// 1. Create Medicine Plan (My Own)
+// 1. Create Medicine Plan
 export const createMedicinePlan = catchAsync(async (req, res, next) => {
   const plan = await MedicinePlan.create({
     patient: req.user.id,
     ...req.body,
   });
 
-  res.status(201).json({
-    status: "success",
-    data: { plan },
-  });
+  sendResponse(res, 201, "Medicine plan created successfully", { plan });
 });
 
 // 2. Get My Medicine Plans
@@ -23,18 +21,13 @@ export const getMyMedicinePlans = catchAsync(async (req, res, next) => {
     isActive: true,
   });
 
-  res.status(200).json({
-    status: "success",
-    results: plans.length,
-    data: { plans },
-  });
+  sendResponse(res, 200, "Medicine plans retrieved successfully", { plans });
 });
 
-// 3. Get A Family Member's Medicine Plans (New Feature)
+// 3. Get A Family Member's Medicine Plans
 export const getFamilyMemberPlans = catchAsync(async (req, res, next) => {
   const { memberId } = req.params;
 
-  // SECURITY CHECK: Am I actually related to this person?
   const connection = await FamilyMember.findOne({
     $or: [
       { requester: req.user.id, recipient: memberId },
@@ -49,17 +42,12 @@ export const getFamilyMemberPlans = catchAsync(async (req, res, next) => {
     );
   }
 
-  // Fetch their active plans
   const plans = await MedicinePlan.find({
     patient: memberId,
     isActive: true,
   });
 
-  res.status(200).json({
-    status: "success",
-    results: plans.length,
-    data: { plans },
-  });
+  sendResponse(res, 200, "Family member's plans retrieved successfully", { plans });
 });
 
 // 4. Update Plan
@@ -74,17 +62,14 @@ export const updateMedicinePlan = catchAsync(async (req, res, next) => {
     return next(new AppError("No plan found with that ID", 404));
   }
 
-  res.status(200).json({
-    status: "success",
-    data: { plan },
-  });
+  sendResponse(res, 200, "Medicine plan updated successfully", { plan });
 });
 
-// 5. Delete Plan (Soft Delete)
+// 5. Delete Plan
 export const deleteMedicinePlan = catchAsync(async (req, res, next) => {
   const plan = await MedicinePlan.findOneAndUpdate(
     { _id: req.params.id, patient: req.user.id },
-    { isActive: false }, // Soft delete
+    { isActive: false },
     { new: true }
   );
 
@@ -92,8 +77,5 @@ export const deleteMedicinePlan = catchAsync(async (req, res, next) => {
     return next(new AppError("No plan found with that ID", 404));
   }
 
-  res.status(204).json({
-    status: "success",
-    data: null,
-  });
+  sendResponse(res, 200, "Medicine plan deleted successfully", null);
 });

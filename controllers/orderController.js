@@ -2,6 +2,8 @@ import Order from "../models/orderModel.js";
 import Pharmacy from "../models/pharmacyModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
+import { sendResponse } from "../utils/responseHandler.js";
+import { sendNotification } from "./notificationController.js";
 
 // 1. Create Order (Patient)
 export const createOrder = catchAsync(async (req, res, next) => {
@@ -25,10 +27,21 @@ export const createOrder = catchAsync(async (req, res, next) => {
     status: "pending",
   });
 
-  res.status(201).json({
-    status: "success",
-    data: { order },
-  });
+  // --- NOTIFICATION TRIGGER ---
+  // Find the pharmacy to get the owner's ID
+  const pharmacy = await Pharmacy.findById(pharmacyId);
+  if (pharmacy && pharmacy.owner) {
+    await sendNotification(
+        req.app.get("io"),
+        pharmacy.owner, // Notify the pharmacist
+        "order",
+        "New Order Received",
+        `You have a new order from ${req.user.name}`,
+        order._id
+    );
+  }
+
+  sendResponse(res, 201, "Order placed successfully", { order });
 });
 
 // 2. Get My Orders (Patient History)
@@ -37,11 +50,7 @@ export const getMyOrders = catchAsync(async (req, res, next) => {
     .populate("pharmacy", "name address phone")
     .sort("-createdAt");
 
-  res.status(200).json({
-    status: "success",
-    results: orders.length,
-    data: { orders },
-  });
+  sendResponse(res, 200, "Orders retrieved successfully", { orders });
 });
 
 // 3. Get My Pharmacy's Orders (List)
@@ -55,12 +64,11 @@ export const getMyPharmacyOrders = catchAsync(async (req, res, next) => {
     .populate("patient", "name phone avatarUrl")
     .sort("-createdAt");
 
+  // Filter out orders that don't belong to this user's pharmacy
   const myOrders = orders.filter((order) => order.pharmacy !== null);
 
-  res.status(200).json({
-    status: "success",
-    results: myOrders.length,
-    data: { orders: myOrders },
+  sendResponse(res, 200, "Pharmacy orders retrieved successfully", {
+    orders: myOrders,
   });
 });
 
@@ -72,19 +80,27 @@ export const updateOrderStatus = catchAsync(async (req, res, next) => {
     req.params.id,
     { status },
     { new: true }
-  );
+  ).populate("patient", "name"); // Populate to get patient ID for notification
 
   if (!order) {
     return next(new AppError("Order not found", 404));
   }
 
-  res.status(200).json({
-    status: "success",
-    data: { order },
-  });
+  // --- NOTIFICATION TRIGGER (Optional but recommended) ---
+  // Notify Patient about status change
+  await sendNotification(
+    req.app.get("io"),
+    order.patient._id,
+    "order",
+    `Order ${status.charAt(0).toUpperCase() + status.slice(1)}`, // e.g. "Order Delivered"
+    `Your order status has been updated to: ${status}`,
+    order._id
+  );
+
+  sendResponse(res, 200, "Order status updated successfully", { order });
 });
 
-// 5. Get Pharmacist Dashboard (Stats & Lists)
+// 5. Get Pharmacist Dashboard
 export const getPharmacistDashboard = catchAsync(async (req, res, next) => {
   const pharmacy = await Pharmacy.findOne({ owner: req.user.id });
 
@@ -112,19 +128,16 @@ export const getPharmacistDashboard = catchAsync(async (req, res, next) => {
     .populate("patient", "name avatarUrl")
     .sort("-updatedAt");
 
-  res.status(200).json({
-    status: "success",
-    data: {
-      pharmacyName: pharmacy.name,
-      pharmacistName: req.user.name,
-      stats: {
-        total: totalOrders,
-        delivered: deliveredOrdersCount,
-      },
-      lists: {
-        recent: recentOrders,
-        delivered: deliveredOrders,
-      },
+  sendResponse(res, 200, "Dashboard data retrieved successfully", {
+    pharmacyName: pharmacy.name,
+    pharmacistName: req.user.name,
+    stats: {
+      total: totalOrders,
+      delivered: deliveredOrdersCount,
+    },
+    lists: {
+      recent: recentOrders,
+      delivered: deliveredOrders,
     },
   });
 });

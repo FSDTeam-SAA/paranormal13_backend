@@ -21,6 +21,6 @@ export const googleAuth = catchAsync(async (req, res, next) => {
     });
   }
 
-  // 3. Send token pair
-  await issueAuthTokens(user, 200, res);
+  // 3. Send token pair with standardized response
+  await issueAuthTokens(user, 200, res, "Google login successful");
 });

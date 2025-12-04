@@ -1,11 +1,10 @@
 import Pharmacy from "../models/pharmacyModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
+import { sendResponse } from "../utils/responseHandler.js";
 
-// Helper function to calculate distance (optional if you want precise km in response)
-// You can move this to utils/calculateDistance.js
 const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
-  const R = 6371; // Radius of the earth in km
+  const R = 6371; 
   const dLat = (lat2 - lat1) * (Math.PI / 180);
   const dLon = (lon2 - lon1) * (Math.PI / 180);
   const a =
@@ -22,32 +21,27 @@ const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
 export const upsertMyPharmacy = catchAsync(async (req, res, next) => {
   const { name, description, phone, address, lat, lng } = req.body;
 
-  // We find the pharmacy owned by THIS user
   const filter = { owner: req.user.id };
-  
+   
   const update = {
     owner: req.user.id,
     name,
     description,
     phone,
     address,
-    // Construct GeoJSON
     location: {
       type: "Point",
-      coordinates: [lng, lat], // Mongo expects [Longitude, Latitude]
+      coordinates: [lng, lat],
     },
   };
 
   const pharmacy = await Pharmacy.findOneAndUpdate(filter, update, {
     new: true,
-    upsert: true, // Create if doesn't exist
+    upsert: true,
     runValidators: true,
   });
 
-  res.status(200).json({
-    status: "success",
-    data: { pharmacy },
-  });
+  sendResponse(res, 200, "Pharmacy updated successfully", { pharmacy });
 });
 
 // 2. Get Nearby Pharmacies
@@ -61,7 +55,6 @@ export const getNearbyPharmacies = catchAsync(async (req, res, next) => {
   const latNum = parseFloat(lat);
   const lngNum = parseFloat(lng);
 
-  // Find using MongoDB Geospatial Operator
   const pharmacies = await Pharmacy.find({
     location: {
       $near: {
@@ -69,12 +62,11 @@ export const getNearbyPharmacies = catchAsync(async (req, res, next) => {
           type: "Point",
           coordinates: [lngNum, latNum],
         },
-        $maxDistance: distanceKm * 1000, // Convert km to meters
+        $maxDistance: distanceKm * 1000,
       },
     },
   });
 
-  // Calculate formatted distance for display
   const results = pharmacies.map((p) => {
     const dist = calculateDistanceKm(
       latNum,
@@ -84,13 +76,9 @@ export const getNearbyPharmacies = catchAsync(async (req, res, next) => {
     );
     return {
       ...p.toObject(),
-      distanceKm: dist.toFixed(1), // e.g. "2.5" km
+      distanceKm: dist.toFixed(1),
     };
   });
 
-  res.status(200).json({
-    status: "success",
-    results: results.length,
-    data: { pharmacies: results },
-  });
+  sendResponse(res, 200, "Nearby pharmacies retrieved", { pharmacies: results });
 });

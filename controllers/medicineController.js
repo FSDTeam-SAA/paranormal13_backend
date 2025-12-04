@@ -1,6 +1,8 @@
 import MedicinePlan from "../models/medicinePlanModel.js";
 import catchAsync from "../utils/catchAsync.js";
+import { sendResponse } from "../utils/responseHandler.js";
 
+// Legacy controller (if still used alongside medicinePlanController)
 export const createMedicinePlan = catchAsync(async (req, res, next) => {
   const plan = await MedicinePlan.create({
     patient: req.user.id,
@@ -14,23 +16,14 @@ export const createMedicinePlan = catchAsync(async (req, res, next) => {
     doctorNotes: req.body.doctorNotes
   });
 
-  res.status(201).json({
-    status: 'success',
-    data: { plan }
-  });
+  sendResponse(res, 201, "Medicine plan created successfully", { plan });
 });
 
 export const getMyMedicinePlans = catchAsync(async (req, res, next) => {
   const plans = await MedicinePlan.find({ patient: req.user.id, isActive: true });
-
-  res.status(200).json({
-    status: 'success',
-    results: plans.length,
-    data: { plans }
-  });
+  sendResponse(res, 200, "Medicine plans retrieved", { plans });
 });
 
-// Very simple "today" endpoint - frontend can map into upcoming/taken/missed
 export const getTodayPlans = catchAsync(async (req, res, next) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -44,11 +37,7 @@ export const getTodayPlans = catchAsync(async (req, res, next) => {
     $or: [{ endDate: null }, { endDate: { $gte: today } }]
   });
 
-  res.status(200).json({
-    status: 'success',
-    results: plans.length,
-    data: { plans }
-  });
+  sendResponse(res, 200, "Today's plans retrieved", { plans });
 });
 
 export const updateMedicinePlan = catchAsync(async (req, res, next) => {
@@ -57,18 +46,10 @@ export const updateMedicinePlan = catchAsync(async (req, res, next) => {
     req.body,
     { new: true }
   );
-
-  res.status(200).json({
-    status: 'success',
-    data: { plan }
-  });
+  sendResponse(res, 200, "Medicine plan updated", { plan });
 });
 
 export const deleteMedicinePlan = catchAsync(async (req, res, next) => {
   await MedicinePlan.findOneAndDelete({ _id: req.params.id, patient: req.user.id });
-
-  res.status(204).json({
-    status: 'success',
-    data: null
-  });
+  sendResponse(res, 204, "Medicine plan deleted", null);
 });

@@ -2,12 +2,12 @@ import Appointment from "../models/appointmentModel.js";
 import DoctorSchedule from "../models/doctorScheduleModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
+import { sendResponse } from "../utils/responseHandler.js";
+import { sendNotification } from "./notificationController.js"; // Import notification helper
 
-// 1. Create Appointment (Patient)
 export const createAppointment = catchAsync(async (req, res, next) => {
   const { slotId, doctorId, notes } = req.body;
 
-  // A) Check if the slot exists and is actually free
   const slot = await DoctorSchedule.findOne({
     _id: slotId,
     doctor: doctorId,
@@ -18,23 +18,27 @@ export const createAppointment = catchAsync(async (req, res, next) => {
     return next(new AppError("This time slot is no longer available.", 400));
   }
 
-  // B) Lock the slot
   slot.isBooked = true;
   await slot.save();
 
-  // C) Create the appointment
   const appointment = await Appointment.create({
     patient: req.user.id,
     doctor: doctorId,
     scheduleSlot: slotId,
     notes,
-    status: "pending", // Default
+    status: "pending",
   });
 
-  res.status(201).json({
-    status: "success",
-    data: { appointment },
-  });
+  await sendNotification(
+    req.app.get("io"),
+    doctorId,
+    "appointment",
+    "New Appointment",
+    `You have a new appointment request from ${req.user.name}`,
+    appointment._id
+  );
+
+  sendResponse(res, 201, "Appointment booked successfully", { appointment });
 });
 
 // 2. Get My Appointments (Patient)
@@ -50,14 +54,9 @@ export const getMyAppointments = catchAsync(async (req, res, next) => {
     })
     .sort("-createdAt");
 
-  res.status(200).json({
-    status: "success",
-    results: appointments.length,
-    data: { appointments },
-  });
+  sendResponse(res, 200, "Appointments retrieved successfully", { appointments });
 });
 
-// 3. Get My Appointments (Doctor)
 export const getDoctorAppointments = catchAsync(async (req, res, next) => {
   const appointments = await Appointment.find({ doctor: req.user.id })
     .populate({
@@ -70,14 +69,11 @@ export const getDoctorAppointments = catchAsync(async (req, res, next) => {
     })
     .sort("-createdAt");
 
-  res.status(200).json({
-    status: "success",
-    results: appointments.length,
-    data: { appointments },
+  sendResponse(res, 200, "Doctor appointments retrieved successfully", {
+    appointments,
   });
 });
 
-// 4. Cancel Appointment (Both)
 export const cancelAppointment = catchAsync(async (req, res, next) => {
   const appointment = await Appointment.findById(req.params.id);
 
@@ -85,7 +81,6 @@ export const cancelAppointment = catchAsync(async (req, res, next) => {
     return next(new AppError("No appointment found with that ID", 404));
   }
 
-  // Check permissions: Only the patient who booked it OR the doctor can cancel
   if (
     appointment.patient.toString() !== req.user.id &&
     appointment.doctor.toString() !== req.user.id
@@ -100,29 +95,33 @@ export const cancelAppointment = catchAsync(async (req, res, next) => {
     appointment.status === "completed"
   ) {
     return next(
-      new AppError(
-        "Cannot cancel an appointment that is already finished.",
-        400
-      )
+      new AppError("Cannot cancel an appointment that is already finished.", 400)
     );
   }
 
-  // A) Update Status
   appointment.status = "cancelled";
   await appointment.save();
 
-  // B) Free up the slot so someone else can book
   await DoctorSchedule.findByIdAndUpdate(appointment.scheduleSlot, {
     isBooked: false,
   });
 
-  res.status(200).json({
-    status: "success",
-    data: { appointment },
-  });
+  const isPatient = req.user.id === appointment.patient.toString();
+  const recipientId = isPatient ? appointment.doctor : appointment.patient;
+  const cancellerName = req.user.name;
+
+  await sendNotification(
+    req.app.get("io"),
+    recipientId,
+    "appointment",
+    "Appointment Cancelled",
+    `Appointment has been cancelled by ${cancellerName}`,
+    appointment._id
+  );
+
+  sendResponse(res, 200, "Appointment cancelled successfully", { appointment });
 });
 
-// 5. Complete Appointment (Doctor Only)
 export const markAppointmentCompleted = catchAsync(async (req, res, next) => {
   const appointment = await Appointment.findOne({
     _id: req.params.id,
@@ -136,10 +135,5 @@ export const markAppointmentCompleted = catchAsync(async (req, res, next) => {
   appointment.status = "completed";
   await appointment.save();
 
-  // Note: We do NOT free up the slot here, because the time was actually used.
-
-  res.status(200).json({
-    status: "success",
-    data: { appointment },
-  });
+  sendResponse(res, 200, "Appointment marked as completed", { appointment });
 });

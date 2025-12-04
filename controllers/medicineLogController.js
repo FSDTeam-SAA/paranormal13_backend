@@ -2,17 +2,16 @@ import MedicineLog from "../models/medicineLogModel.js";
 import MedicinePlan from "../models/medicinePlanModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
+import { sendResponse } from "../utils/responseHandler.js";
 
-// 1. Log an Action (Taken / Skipped)
+// 1. Log an Action
 export const logMedicineAction = catchAsync(async (req, res, next) => {
   const { planId, status, scheduledDate, scheduledTime } = req.body;
 
-  // Validate Status
   if (!["taken", "skipped", "missed"].includes(status)) {
     return next(new AppError("Invalid status", 400));
   }
 
-  // Verify the plan belongs to this user
   const plan = await MedicinePlan.findOne({
     _id: planId,
     patient: req.user.id,
@@ -21,7 +20,6 @@ export const logMedicineAction = catchAsync(async (req, res, next) => {
     return next(new AppError("Medicine Plan not found", 404));
   }
 
-  // Check if already logged to prevent double-clicking
   const existingLog = await MedicineLog.findOne({
     patient: req.user.id,
     medicinePlan: planId,
@@ -30,18 +28,13 @@ export const logMedicineAction = catchAsync(async (req, res, next) => {
   });
 
   if (existingLog) {
-    // Update existing log if they changed their mind (e.g. Skipped -> Taken)
     existingLog.status = status;
     existingLog.actionAt = Date.now();
     await existingLog.save();
 
-    return res.status(200).json({
-      status: "success",
-      data: { log: existingLog },
-    });
+    return sendResponse(res, 200, "Medicine log updated", { log: existingLog });
   }
 
-  // Create new Log
   const log = await MedicineLog.create({
     patient: req.user.id,
     medicinePlan: planId,
@@ -51,15 +44,12 @@ export const logMedicineAction = catchAsync(async (req, res, next) => {
     actionAt: Date.now(),
   });
 
-  res.status(201).json({
-    status: "success",
-    data: { log },
-  });
+  sendResponse(res, 201, "Medicine action logged", { log });
 });
 
-// 2. Get Daily Stats (For the Dashboard Counters: 2 Taken, 0 Missed)
+// 2. Get Daily Stats
 export const getDailyStats = catchAsync(async (req, res, next) => {
-  const { date } = req.query; // YYYY-MM-DD
+  const { date } = req.query;
   const queryDate = date ? new Date(date) : new Date();
   queryDate.setHours(0, 0, 0, 0);
 
@@ -74,8 +64,5 @@ export const getDailyStats = catchAsync(async (req, res, next) => {
     missed: logs.filter((l) => l.status === "missed").length,
   };
 
-  res.status(200).json({
-    status: "success",
-    data: { stats },
-  });
+  sendResponse(res, 200, "Daily stats retrieved", { stats });
 });
