@@ -52,14 +52,12 @@ app.use(xss());
 app.use(hpp());
 
 // --- MOUNT ROUTES ---
-// This one line handles everything!
-// e.g. /api/auth, /api/users, etc.
 app.use("/api", routes);
 
 // Base route
 app.get("/", (req, res) => {
   res.status(200).json({
-    status: "success",
+    success: true, // Standardized
     message: "MediRemind API is running",
   });
 });

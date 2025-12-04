@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import app from "./app.js";
+import socketHandler from "./utils/socketHandler.js"; // Import the handler
 
 // 1. Load environment variables
 dotenv.config({ path: "./.env" });
@@ -15,39 +16,22 @@ if (!process.env.DATABASE) {
   process.exit(1);
 }
 
-// 3. Create HTTP Server (Required for Socket.io)
+// 3. Create HTTP Server
 const httpServer = createServer(app);
 
 // 4. Initialize Socket.io
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // In production, replace this with your frontend URL (e.g. "https://mediremind.com")
+    origin: "*", 
     methods: ["GET", "POST", "PATCH", "DELETE"],
   },
 });
 
 // 5. Make 'io' accessible globally in Controllers
-// This allows us to emit events from inside API controllers (e.g. orderController)
 app.set("io", io);
 
-// 6. Socket Connection Logic
-io.on("connection", (socket) => {
-  console.log(`⚡ New Socket Connection: ${socket.id}`);
-
-  // A. Join User Room
-  // Frontend will emit 'join' with userId when the user logs in
-  socket.on("join", (userId) => {
-    if (userId) {
-      socket.join(userId);
-      console.log(`✅ User ${userId} joined their personal room`);
-    }
-  });
-
-  // B. Handle Disconnect
-  socket.on("disconnect", () => {
-    // console.log("User disconnected");
-  });
-});
+// 6. Initialize Socket Logic (Moved to clean file)
+socketHandler(io);
 
 // 7. Connect to Database
 let DB = process.env.DATABASE;
@@ -64,7 +48,6 @@ mongoose
   });
 
 // 8. Start Server
-// IMPORTANT: We listen on 'httpServer', NOT 'app'
 const port = process.env.PORT || 8000;
 httpServer.listen(port, () => {
   console.log(`🚀 App running on port ${port}...`);

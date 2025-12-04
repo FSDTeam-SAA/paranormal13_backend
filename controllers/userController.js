@@ -159,3 +159,39 @@ export const deleteFamilyMember = catchAsync(async (req, res, next) => {
 
   sendResponse(res, 200, "Family member removed successfully", null);
 });
+
+// 1. Toggle Favorite (Add or Remove)
+export const toggleFavorite = catchAsync(async (req, res, next) => {
+  const { targetId } = req.body; // The Doctor or Pharmacist ID
+
+  if (!targetId) {
+    return next(new AppError("Target ID is required", 400));
+  }
+
+  const user = await User.findById(req.user.id);
+  
+  // Check if already favorite
+  const isFavorite = user.favorites.includes(targetId);
+
+  if (isFavorite) {
+    // Remove
+    user.favorites = user.favorites.filter(id => id.toString() !== targetId);
+    await user.save({ validateBeforeSave: false });
+    return sendResponse(res, 200, "Removed from favorites", { favorites: user.favorites });
+  } else {
+    // Add (Prevent duplicates just in case)
+    user.favorites.push(targetId);
+    await user.save({ validateBeforeSave: false });
+    return sendResponse(res, 200, "Added to favorites", { favorites: user.favorites });
+  }
+});
+
+// 2. Get My Favorites List
+export const getMyFavorites = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.user.id).populate({
+    path: "favorites",
+    select: "name avatarUrl role specialization hospitalName pharmacyName location rating"
+  });
+
+  sendResponse(res, 200, "Favorites retrieved successfully", { favorites: user.favorites });
+});

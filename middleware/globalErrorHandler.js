@@ -24,8 +24,9 @@ const handleJWTExpiredError = () =>
   new AppError("Your token has expired! Please log in again.", 401);
 
 const sendErrorDev = (err, req, res) => {
-  res.status(err.statusCode || 500).json({
-    status: err.status || "error",
+  res.status(err.statusCode).json({
+    success: false,
+    status: err.status,
     error: err,
     message: err.message,
     stack: err.stack,
@@ -33,15 +34,17 @@ const sendErrorDev = (err, req, res) => {
 };
 
 const sendErrorProd = (err, req, res) => {
+  // A) Operational, trusted error: send message to client
   if (err.isOperational) {
-    res.status(err.statusCode || 500).json({
-      status: err.status || "error",
+    res.status(err.statusCode).json({
+      success: false, // Changed from status: 'fail'
       message: err.message,
     });
   } else {
-    console.error("ERROR dY'�", err);
+    // B) Programming or other unknown error: don't leak error details
+    console.error("ERROR 💥", err);
     res.status(500).json({
-      status: "error",
+      success: false,
       message: "Something went very wrong!",
     });
   }
@@ -54,7 +57,8 @@ const globalErrorHandler = (err, req, res, next) => {
   if (process.env.NODE_ENV === "development") {
     sendErrorDev(err, req, res);
   } else {
-    let error = Object.assign(err);
+    let error = { ...err };
+    error.message = err.message; // Explicitly copy message
 
     if (error.name === "CastError") error = handleCastErrorDB(error);
     if (error.code === 11000) error = handleDuplicateFieldsDB(error);

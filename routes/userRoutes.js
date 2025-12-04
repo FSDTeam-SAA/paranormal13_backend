@@ -7,6 +7,8 @@ import {
   getMyFamilyMembers,
   getReceivedFamilyRequests,
   deleteFamilyMember,
+  toggleFavorite,
+  getMyFavorites
 } from "../controllers/userController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { uploadSingleImage } from "../middleware/uploadMiddleware.js";
@@ -33,5 +35,9 @@ router.get("/family/requests/received", getReceivedFamilyRequests);
 
 // 5. Remove a family member connection
 router.delete("/family/:id", deleteFamilyMember);
+
+// --- FAVORITES ---
+router.post("/favorites", toggleFavorite); // Body: { "targetId": "..." }
+router.get("/favorites", getMyFavorites);
 
 export default router;

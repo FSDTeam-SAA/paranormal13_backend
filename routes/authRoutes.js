@@ -24,13 +24,11 @@ router.post("/forgotPassword", forgotPassword);
 router.post("/verifyResetCode", verifyResetCode);
 router.post("/resetPassword", resetPassword);
 
+router.post("/google", socialAuthController.googleAuth);
+
 // --- PROTECTED ROUTES (Token Needed) ---
 router.use(protect);
 
-// Note: '/me' route has been moved to userRoutes.js
-
 router.patch("/updateMyPassword", updatePassword);
-
-router.post("/google", socialAuthController.googleAuth);
 
 export default router;

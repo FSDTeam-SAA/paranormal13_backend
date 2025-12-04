@@ -2,20 +2,26 @@ import MedicinePlan from "../models/medicinePlanModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import { sendResponse } from "../utils/responseHandler.js";
 
-// Legacy controller (if still used alongside medicinePlanController)
+const isSameDay = (d1, d2) => {
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
+};
+
+const getDaysDiff = (start, current) => {
+  const s = new Date(start); s.setHours(0,0,0,0);
+  const c = new Date(current); c.setHours(0,0,0,0);
+  const diffTime = Math.abs(c - s);
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+};
+
 export const createMedicinePlan = catchAsync(async (req, res, next) => {
   const plan = await MedicinePlan.create({
     patient: req.user.id,
-    name: req.body.name,
-    dosage: req.body.dosage,
-    frequency: req.body.frequency,
-    startDate: req.body.startDate,
-    endDate: req.body.endDate,
-    timesOfDay: req.body.timesOfDay,
-    instructions: req.body.instructions,
-    doctorNotes: req.body.doctorNotes
+    ...req.body
   });
-
   sendResponse(res, 201, "Medicine plan created successfully", { plan });
 });
 
@@ -26,18 +32,40 @@ export const getMyMedicinePlans = catchAsync(async (req, res, next) => {
 
 export const getTodayPlans = catchAsync(async (req, res, next) => {
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  today.setHours(0, 0, 0, 0); // Normalize "today" to midnight
+  const currentDayOfWeek = today.getDay(); // 0=Sun, 1=Mon...
 
-  const plans = await MedicinePlan.find({
+  const allPlans = await MedicinePlan.find({
     patient: req.user.id,
     isActive: true,
-    startDate: { $lte: tomorrow },
-    $or: [{ endDate: null }, { endDate: { $gte: today } }]
+    startDate: { $lte: today }, // Must have started already
+    $or: [{ endDate: null }, { endDate: { $gte: today } }] // Must not have ended
   });
 
-  sendResponse(res, 200, "Today's plans retrieved", { plans });
+  // 2. Filter plans that match today's schedule
+  const todayPlans = allPlans.filter(plan => {
+    // A. Daily -> Always true
+    if (plan.frequency === 'daily') return true;
+
+    // B. Specific Days -> Check if today (e.g., Mon=1) is in the array
+    if (plan.frequency === 'specific_days') {
+      return plan.specificDays && plan.specificDays.includes(currentDayOfWeek);
+    }
+
+    // C. Interval (Every X days) -> Check math
+    if (plan.frequency === 'interval') {
+      const start = new Date(plan.startDate);
+      // If today IS the start date, take it
+      if (isSameDay(start, today)) return true;
+      
+      const diff = getDaysDiff(start, today);
+      return (diff % plan.interval === 0);
+    }
+
+    return false;
+  });
+
+  sendResponse(res, 200, "Today's plans retrieved", { plans: todayPlans });
 });
 
 export const updateMedicinePlan = catchAsync(async (req, res, next) => {
