@@ -18,46 +18,57 @@ const getIncomingRefreshToken = (req) =>
 
 // --- AUTH CONTROLLERS ---
 
+const cleanInput = (val) => (val === "" || val === null ? undefined : val);
+
 export const signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
     name: req.body.name,
-    email: req.body.email,
-    phone: req.body.phone,
+    // If user sends email: "", convert to undefined so Sparse index works
+    email: cleanInput(req.body.email),
+    phone: cleanInput(req.body.phone),
     password: req.body.password,
     role: req.body.role || "patient",
     location: req.body.location,
     specialization: req.body.specialization,
     hospitalName: req.body.hospitalName,
-    // Ensure doctorStatus is pending by default if role is doctor
     doctorStatus: req.body.role === "doctor" ? "pending" : undefined,
   });
 
   try {
-    await sendEmail({
-      email: newUser.email,
-      subject: "Welcome to MediRemind!",
-      html: welcomeTemplate(newUser.name, newUser.role),
-    });
+    // Only send email if email exists
+    if (newUser.email) {
+      await sendEmail({
+        email: newUser.email,
+        subject: "Welcome to MediRemind!",
+        html: welcomeTemplate(newUser.name, newUser.role),
+      });
+    }
   } catch (err) {
     console.log("Welcome email failed to send:", err.message);
-    // We do not stop the signup process if email fails
   }
 
-  // Issue tokens with custom success message
   await issueAuthTokens(newUser, 201, res, "User registered successfully");
 });
 
 export const login = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
+  const { email, phone, password } = req.body;
 
-  if (!email || !password) {
-    return next(new AppError("Please provide email and password", 400));
+  // 1. Check if email/phone and password exist
+  if ((!email && !phone) || !password) {
+    return next(new AppError("Please provide (email or phone) and password", 400));
   }
 
-  const user = await User.findOne({ email }).select("+password +doctorStatus");
+  // 2. Find User (Check Email OR Phone)
+  // Logic: Find a user where email matches OR phone matches
+  const user = await User.findOne({
+    $or: [
+      { email: email || "nomatch_placeholder" }, 
+      { phone: phone || "nomatch_placeholder" }
+    ]
+  }).select("+password +doctorStatus");
 
   if (!user || !(await user.correctPassword(password, user.password))) {
-    return next(new AppError("Incorrect email or password", 401));
+    return next(new AppError("Incorrect credentials", 401));
   }
 
   await issueAuthTokens(user, 200, res, "User Logged in successfully");
