@@ -13,13 +13,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       lowercase: true,
       unique: true,
-      required: [true, "Please provide your email"],
+      sparse: true, // <--- ALLOWS MULTIPLE NULL VALUES
       validate: [validator.isEmail, "Please provide a valid email"],
     },
     phone: {
       type: String,
       unique: true,
-      //required: [true, "Please provide your phone number"],
+      sparse: true, // <--- ALLOWS MULTIPLE NULL VALUES
     },
     role: {
       type: String,
@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema(
       minlength: 8,
       select: false,
     },
+    // ... rest of your fields (refreshToken, avatarUrl, etc.) keep them same ...
     refreshToken: {
       type: String,
       select: false,
@@ -71,6 +72,12 @@ const userSchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
+    favorites: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     pharmacyName: String,
     passwordChangedAt: Date,
     passwordResetCode: String,
@@ -89,6 +96,14 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.index({ location: "2dsphere" });
+
+userSchema.pre("validate", function (next) {
+  if ((!this.email || this.email.trim() === "") && (!this.phone || this.phone.trim() === "")) {
+    return next(new Error("You must provide either an Email OR a Phone number to sign up."));
+  }
+  next();
+});
+
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
