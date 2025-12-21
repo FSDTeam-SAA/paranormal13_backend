@@ -154,6 +154,10 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
 
     sendResponse(res, 200, "Reset code sent to email", null);
   } catch (err) {
+    // --- DEBUGGING: PRINT THE REAL ERROR TO CONSOLE ---
+    console.error("EMAIL SENDING FAILED 💥:", err); 
+    // --------------------------------------------------
+
     user.passwordResetCode = undefined;
     user.passwordResetExpires = undefined;
     await user.save({ validateBeforeSave: false });
@@ -208,8 +212,6 @@ export const resetPassword = catchAsync(async (req, res, next) => {
 });
 
 export const updatePassword = catchAsync(async (req, res, next) => {
-  // IMPORTANT: For development without auth, this route will fail if req.user is undefined.
-  // Ideally, you should not test "updatePassword" without being logged in.
   if (!req.user) {
     return next(new AppError("You must be logged in to change password", 401));
   }
