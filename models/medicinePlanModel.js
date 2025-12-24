@@ -36,12 +36,7 @@ const medicinePlanSchema = new mongoose.Schema(
     reminderTimes: {
       type: [String],
       required: false,
-      validate: {
-        validator: function (v) {
-          return v && v.length > 0;
-        },
-        message: "At least one reminder time is required.",
-      },
+      default: []
     },
     instructions: {
       type: String,
