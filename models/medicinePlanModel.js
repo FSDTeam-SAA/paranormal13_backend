@@ -46,6 +46,9 @@ const medicinePlanSchema = new mongoose.Schema(
     instructions: {
       type: String,
       trim: true,
+    },doctorNotes: {
+      type: String,
+      trim: true,
     },
     prescribedBy: {
       type: mongoose.Schema.Types.ObjectId,
