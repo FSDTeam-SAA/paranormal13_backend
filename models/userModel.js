@@ -13,13 +13,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       lowercase: true,
       unique: true,
-      sparse: true, // <--- ALLOWS MULTIPLE NULL VALUES
+      sparse: true,
       validate: [validator.isEmail, "Please provide a valid email"],
     },
     phone: {
       type: String,
       unique: true,
-      sparse: true, // <--- ALLOWS MULTIPLE NULL VALUES
+      sparse: true,
     },
     role: {
       type: String,
@@ -32,7 +32,6 @@ const userSchema = new mongoose.Schema(
       minlength: 8,
       select: false,
     },
-    // ... rest of your fields (refreshToken, avatarUrl, etc.) keep them same ...
     refreshToken: {
       type: String,
       select: false,
@@ -90,20 +89,36 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true },
+    // --- UPDATED JSON SETTINGS ---
+    toJSON: {
+      virtuals: true,
+      versionKey: false, // Removes __v
+      transform: function (doc, ret) {
+        delete ret._id;  // Removes _id (duplicate of id)
+        delete ret.__v;  // Extra safety to remove version key
+        // You can also hide other fields here if you want
+        // delete ret.createdAt; 
+        // delete ret.updatedAt;
+      },
+    },
     toObject: { virtuals: true },
   }
 );
 
 userSchema.index({ location: "2dsphere" });
 
+// --- CUSTOM VALIDATION ---
 userSchema.pre("validate", function (next) {
-  if ((!this.email || this.email.trim() === "") && (!this.phone || this.phone.trim() === "")) {
-    return next(new Error("You must provide either an Email OR a Phone number to sign up."));
+  if (
+    (!this.email || this.email.trim() === "") &&
+    (!this.phone || this.phone.trim() === "")
+  ) {
+    return next(
+      new Error("You must provide either an Email OR a Phone number to sign up.")
+    );
   }
   next();
 });
-
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();

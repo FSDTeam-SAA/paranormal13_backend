@@ -34,14 +34,12 @@ const sendErrorDev = (err, req, res) => {
 };
 
 const sendErrorProd = (err, req, res) => {
-  // A) Operational, trusted error: send message to client
   if (err.isOperational) {
     res.status(err.statusCode).json({
-      success: false, // Changed from status: 'fail'
+      success: false,
       message: err.message,
     });
   } else {
-    // B) Programming or other unknown error: don't leak error details
     console.error("ERROR 💥", err);
     res.status(500).json({
       success: false,
@@ -51,6 +49,12 @@ const sendErrorProd = (err, req, res) => {
 };
 
 const globalErrorHandler = (err, req, res, next) => {
+  // --- SAFETY FIX: Handle String Errors ---
+  if (typeof err === "string") {
+    err = { message: err };
+  }
+  // ----------------------------------------
+
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
 
@@ -58,7 +62,9 @@ const globalErrorHandler = (err, req, res, next) => {
     sendErrorDev(err, req, res);
   } else {
     let error = { ...err };
-    error.message = err.message; // Explicitly copy message
+    
+    // Copy the message property explicitly
+    if (err.message) error.message = err.message; 
 
     if (error.name === "CastError") error = handleCastErrorDB(error);
     if (error.code === 11000) error = handleDuplicateFieldsDB(error);
