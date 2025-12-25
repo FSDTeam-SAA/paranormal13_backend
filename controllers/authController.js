@@ -23,7 +23,6 @@ const cleanInput = (val) => (val === "" || val === null ? undefined : val);
 export const signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
     name: req.body.name,
-    // If user sends email: "", convert to undefined so Sparse index works
     email: cleanInput(req.body.email),
     phone: cleanInput(req.body.phone),
     password: req.body.password,
@@ -35,7 +34,6 @@ export const signup = catchAsync(async (req, res, next) => {
   });
 
   try {
-    // Only send email if email exists
     if (newUser.email) {
       await sendEmail({
         email: newUser.email,
@@ -53,13 +51,10 @@ export const signup = catchAsync(async (req, res, next) => {
 export const login = catchAsync(async (req, res, next) => {
   const { email, phone, password } = req.body;
 
-  // 1. Check if email/phone and password exist
   if ((!email && !phone) || !password) {
     return next(new AppError("Please provide (email or phone) and password", 400));
   }
 
-  // 2. Find User (Check Email OR Phone)
-  // Logic: Find a user where email matches OR phone matches
   const user = await User.findOne({
     $or: [
       { email: email || "nomatch_placeholder" }, 
@@ -135,9 +130,7 @@ export const refreshAccessToken = catchAsync(async (req, res, next) => {
 export const forgotPassword = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
-    return next(
-      new AppError("There is no user with that email address.", 404)
-    );
+    return next(new AppError("There is no user with that email address.", 404));
   }
 
   const resetCode = user.createPasswordResetCode();
@@ -154,24 +147,27 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
 
     sendResponse(res, 200, "Reset code sent to email", null);
   } catch (err) {
-    // --- DEBUGGING: PRINT THE REAL ERROR TO CONSOLE ---
     console.error("EMAIL SENDING FAILED 💥:", err); 
-    // --------------------------------------------------
 
     user.passwordResetCode = undefined;
     user.passwordResetExpires = undefined;
     await user.save({ validateBeforeSave: false });
 
-    return next(
-      new AppError("There was an error sending the email. Try again later!", 500)
-    );
+    return next(new AppError("There was an error sending the email. Try again later!", 500));
   }
 });
 
+// --- UPDATED VERIFY RESET CODE ---
 export const verifyResetCode = catchAsync(async (req, res, next) => {
+  // 1. Safety Check: Ensure code is provided
+  if (!req.body.resetCode) {
+    return next(new AppError("Please provide the resetCode.", 400));
+  }
+
+  // 2. Hash the incoming code
   const hashedCode = crypto
     .createHash("sha256")
-    .update(req.body.code)
+    .update(req.body.resetCode) // FIXED: Uses resetCode now
     .digest("hex");
 
   const user = await User.findOne({
@@ -188,10 +184,16 @@ export const verifyResetCode = catchAsync(async (req, res, next) => {
   });
 });
 
+// --- UPDATED RESET PASSWORD ---
 export const resetPassword = catchAsync(async (req, res, next) => {
+  // 1. Safety Check
+  if (!req.body.resetCode) {
+    return next(new AppError("Please provide the resetCode.", 400));
+  }
+
   const hashedCode = crypto
     .createHash("sha256")
-    .update(req.body.code)
+    .update(req.body.resetCode) // FIXED: Uses resetCode now
     .digest("hex");
 
   const user = await User.findOne({
