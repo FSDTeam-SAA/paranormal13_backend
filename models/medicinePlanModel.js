@@ -7,44 +7,51 @@ const medicinePlanSchema = new mongoose.Schema(
       ref: "User",
       required: [true, "Plan must belong to a patient"],
     },
-    name: {
+    name: { 
       type: String,
       required: [true, "Medicine name is required"],
       trim: true,
     },
-    dosage: {
+    dosage: { 
       type: String,
       required: [true, "Dosage is required"],
     },
-    type: {
+    frequency: { 
       type: String,
-      enum: ["Tablet", "Capsule", "Syrup", "Injection", "Other"],
-      default: "Tablet",
-    },
-    frequency: {
-      type: String,
-      enum: ["daily", "weekly", "custom"],
+      enum: ["daily", "weekly", "interval", "specific_days"], 
       default: "daily",
     },
-    startDate: {
+    interval: { type: Number, default: 1 }, 
+    specificDays: { type: [Number], default: [] },
+
+    startDate: { 
       type: Date,
       required: true,
       default: Date.now,
     },
-    endDate: Date,
+    endDate: Date, 
 
-    reminderTimes: {
-      type: [String],
-      required: false,
-      default: []
+    timesOfDay: { 
+      type: [String], // Stores ["08:00 am", "02:00 pm"]
+      required: true, 
+      validate: {
+        validator: function (v) {
+          return v && v.length > 0;
+        },
+        message: "At least one Time of Day is required.",
+      },
     },
-    instructions: {
+
+    instructions: { 
       type: String,
       trim: true,
-    },doctorNotes: {
+    },
+    
+    doctorNotes: { 
       type: String,
       trim: true,
     },
+
     prescribedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
