@@ -4,7 +4,7 @@ import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 import { sendResponse } from "../utils/responseHandler.js";
 
-// 1. Send a Message
+// 1. Send a Message (REST API Fallback)
 export const sendMessage = catchAsync(async (req, res, next) => {
   const { recipientId, text } = req.body;
 
@@ -27,11 +27,12 @@ export const sendMessage = catchAsync(async (req, res, next) => {
     messageData.image = req.file.path;
   }
 
-  const newMessage = await Message.create(messageData);
+  let newMessage = await Message.create(messageData);
 
-  // OPTIONAL: Trigger socket event here for Real-time chat (if not handled by client directly)
-  // const io = req.app.get("io");
-  // io.to(recipientId).emit("receiveMessage", newMessage);
+  newMessage = await newMessage.populate([
+    { path: "sender", select: "name avatarUrl" },
+    { path: "recipient", select: "name avatarUrl" }
+  ]);
 
   sendResponse(res, 201, "Message sent successfully", { message: newMessage });
 });
@@ -50,6 +51,7 @@ export const getChatHistory = catchAsync(async (req, res, next) => {
     .populate("sender", "name avatarUrl")
     .populate("recipient", "name avatarUrl");
 
+  // Mark messages as read
   await Message.updateMany(
     { sender: userId, recipient: req.user.id, isRead: false },
     { isRead: true }
@@ -58,7 +60,7 @@ export const getChatHistory = catchAsync(async (req, res, next) => {
   sendResponse(res, 200, "Chat history retrieved", { messages });
 });
 
-// 3. Get Chat List
+// 3. Get Chat List (Inbox)
 export const getChatList = catchAsync(async (req, res, next) => {
   const currentUserId = req.user._id;
 

@@ -157,17 +157,14 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   }
 });
 
-// --- UPDATED VERIFY RESET CODE ---
 export const verifyResetCode = catchAsync(async (req, res, next) => {
-  // 1. Safety Check: Ensure code is provided
   if (!req.body.resetCode) {
     return next(new AppError("Please provide the resetCode.", 400));
   }
 
-  // 2. Hash the incoming code
   const hashedCode = crypto
     .createHash("sha256")
-    .update(req.body.resetCode) // FIXED: Uses resetCode now
+    .update(req.body.resetCode)
     .digest("hex");
 
   const user = await User.findOne({
@@ -184,16 +181,14 @@ export const verifyResetCode = catchAsync(async (req, res, next) => {
   });
 });
 
-// --- UPDATED RESET PASSWORD ---
 export const resetPassword = catchAsync(async (req, res, next) => {
-  // 1. Safety Check
   if (!req.body.resetCode) {
     return next(new AppError("Please provide the resetCode.", 400));
   }
 
   const hashedCode = crypto
     .createHash("sha256")
-    .update(req.body.resetCode) // FIXED: Uses resetCode now
+    .update(req.body.resetCode)
     .digest("hex");
 
   const user = await User.findOne({
