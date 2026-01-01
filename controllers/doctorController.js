@@ -5,16 +5,15 @@ import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 import { sendResponse } from "../utils/responseHandler.js";
 
-// 1. Get All Doctors (Search & Filter)
 export const getDoctors = catchAsync(async (req, res, next) => {
-  const { search, specialization } = req.query;
+  const { search, specialization, page, limit } = req.query;
 
   const queryObj = {
     role: "doctor",
     doctorStatus: "approved",
-    specialization: { $exists: true, $ne: null },
+    specialization: { $exists: true, $ne: null, $nin: [""] },
     experienceYears: { $exists: true, $ne: null },
-    hospitalName: { $exists: true, $ne: null },
+    hospitalName: { $exists: true, $ne: null, $nin: [""] },
   };
 
   if (specialization) {
@@ -29,11 +28,23 @@ export const getDoctors = catchAsync(async (req, res, next) => {
     ];
   }
 
-const doctors = await User.find(queryObj).select(
-    "name specialization hospitalName avatarUrl experienceYears location doctorStatus rating ratingsQuantity"
-  );
+  const pageNum = page * 1 || 1;     
+  const limitNum = limit * 1 || 10;  
+  const skip = (pageNum - 1) * limitNum;
 
-  sendResponse(res, 200, "Doctors retrieved successfully", { doctors });
+  const doctors = await User.find(queryObj)
+    .skip(skip)
+    .limit(limitNum);
+
+  const totalDoctors = await User.countDocuments(queryObj);
+
+  sendResponse(res, 200, "Doctors retrieved successfully", {
+    results: doctors.length,
+    total: totalDoctors,
+    totalPages: Math.ceil(totalDoctors / limitNum),
+    currentPage: pageNum,
+    doctors,
+  });
 });
 
 export const getDoctor = catchAsync(async (req, res, next) => {
