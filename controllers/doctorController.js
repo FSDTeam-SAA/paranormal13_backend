@@ -12,6 +12,9 @@ export const getDoctors = catchAsync(async (req, res, next) => {
   const queryObj = {
     role: "doctor",
     doctorStatus: "approved",
+    specialization: { $exists: true, $ne: null },
+    experienceYears: { $exists: true, $ne: null },
+    hospitalName: { $exists: true, $ne: null },
   };
 
   if (specialization) {
