@@ -29,8 +29,8 @@ export const getDoctors = catchAsync(async (req, res, next) => {
     ];
   }
 
-  const doctors = await User.find(queryObj).select(
-    "name specialization hospitalName avatarUrl experienceYears location doctorStatus rating"
+const doctors = await User.find(queryObj).select(
+    "name specialization hospitalName avatarUrl experienceYears location doctorStatus rating ratingsQuantity"
   );
 
   sendResponse(res, 200, "Doctors retrieved successfully", { doctors });

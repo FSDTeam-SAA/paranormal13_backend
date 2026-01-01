@@ -32,18 +32,9 @@ const userSchema = new mongoose.Schema(
       minlength: 8,
       select: false,
     },
-    refreshToken: {
-      type: String,
-      select: false,
-    },
-    refreshTokenExpires: {
-      type: Date,
-      select: false,
-    },
-    avatarUrl: {
-      type: String,
-      default: "default.jpg",
-    },
+    refreshToken: { type: String, select: false },
+    refreshTokenExpires: { type: Date, select: false },
+    avatarUrl: { type: String, default: "default.jpg" },
     gender: {
       type: String,
       enum: ["male", "female", "other"],
@@ -51,21 +42,29 @@ const userSchema = new mongoose.Schema(
     },
     dateOfBirth: Date,
     location: {
-      type: {
-        type: String,
-        enum: ["Point"],
-        default: "Point",
-      },
-      coordinates: {
-        type: [Number],
-        default: [0, 0],
-      },
+      type: { type: String, enum: ["Point"], default: "Point" },
+      coordinates: { type: [Number], default: [0, 0] },
       address: String,
     },
     specialization: String,
     experienceYears: Number,
     about: String,
     hospitalName: String,
+
+    // --- ADDED: Fields to store data from reviewModel.js ---
+    rating: {
+      type: Number,
+      default: 4.5,
+      min: [1, "Rating must be above 1.0"],
+      max: [5, "Rating must be below 5.0"],
+      set: (val) => Math.round(val * 10) / 10, // Rounds 4.66666 -> 4.7
+    },
+    ratingsQuantity: {
+      type: Number,
+      default: 0,
+    },
+    // --------------------------------------------------------
+
     doctorStatus: {
       type: String,
       enum: ["pending", "approved", "rejected"],
@@ -89,16 +88,12 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    // --- UPDATED JSON SETTINGS ---
     toJSON: {
       virtuals: true,
-      versionKey: false, // Removes __v
+      versionKey: false,
       transform: function (doc, ret) {
-        delete ret._id;  // Removes _id (duplicate of id)
-        delete ret.__v;  // Extra safety to remove version key
-        // You can also hide other fields here if you want
-        // delete ret.createdAt; 
-        // delete ret.updatedAt;
+        delete ret._id;
+        delete ret.__v;
       },
     },
     toObject: { virtuals: true },
@@ -107,7 +102,7 @@ const userSchema = new mongoose.Schema(
 
 userSchema.index({ location: "2dsphere" });
 
-// --- CUSTOM VALIDATION ---
+// ... (Keep your existing middleware/methods below, they are fine) ...
 userSchema.pre("validate", function (next) {
   if (
     (!this.email || this.email.trim() === "") &&
