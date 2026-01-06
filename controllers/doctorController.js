@@ -5,6 +5,7 @@ import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 import { sendResponse } from "../utils/responseHandler.js";
 
+
 export const getDoctors = catchAsync(async (req, res, next) => {
   const { search, specialization, page, limit } = req.query;
 
@@ -28,24 +29,45 @@ export const getDoctors = catchAsync(async (req, res, next) => {
     ];
   }
 
-  const pageNum = page * 1 || 1;     
-  const limitNum = limit * 1 || 10;  
+  const pageNum = page * 1 || 1;
+  const limitNum = limit * 1 || 10;
   const skip = (pageNum - 1) * limitNum;
 
   const doctors = await User.find(queryObj)
     .skip(skip)
     .limit(limitNum);
 
+  const doctorsWithSchedule = await Promise.all(
+    doctors.map(async (doc) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const schedule = await DoctorSchedule.find({
+        doctor: doc._id,
+        date: { $gte: today }, 
+        isBooked: false,
+      })
+      .select("date startTime endTime") 
+      .sort({ date: 1, startTime: 1 });
+
+      const docObj = doc.toJSON();
+      docObj.schedule = schedule;
+      
+      return docObj;
+    })
+  );
+
   const totalDoctors = await User.countDocuments(queryObj);
 
   sendResponse(res, 200, "Doctors retrieved successfully", {
-    results: doctors.length,
+    results: doctorsWithSchedule.length,
     total: totalDoctors,
     totalPages: Math.ceil(totalDoctors / limitNum),
     currentPage: pageNum,
-    doctors,
+    doctors: doctorsWithSchedule,
   });
 });
+
 
 export const getDoctor = catchAsync(async (req, res, next) => {
   const doctor = await User.findOne({
@@ -58,16 +80,28 @@ export const getDoctor = catchAsync(async (req, res, next) => {
     return next(new AppError("No approved doctor found with that ID", 404));
   }
 
-  sendResponse(res, 200, "Doctor profile retrieved successfully", { doctor });
+  // Get Start of Today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const schedule = await DoctorSchedule.find({
+    doctor: doctor._id,
+    date: { $gte: today }, 
+    isBooked: false,
+  })
+  .select("date startTime endTime") 
+  .sort({ date: 1, startTime: 1 });
+
+  const doctorObj = doctor.toJSON();
+  doctorObj.schedule = schedule;
+
+  sendResponse(res, 200, "Doctor profile retrieved successfully", { doctor: doctorObj });
 });
 
 export const getDoctorDashboard = catchAsync(async (req, res, next) => {
   const doctorId = req.user.id;
 
-  const totalAppointments = await Appointment.countDocuments({
-    doctor: doctorId,
-  });
-
+  const totalAppointments = await Appointment.countDocuments({ doctor: doctorId });
   const completedAppointments = await Appointment.countDocuments({
     doctor: doctorId,
     status: "completed",
