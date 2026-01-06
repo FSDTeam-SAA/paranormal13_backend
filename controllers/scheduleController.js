@@ -23,7 +23,11 @@ export const createSlot = catchAsync(async (req, res, next) => {
 
 // 2. Get My Slots
 export const getMySlots = catchAsync(async (req, res, next) => {
-  const slots = await DoctorSchedule.find({ doctor: req.user.id }).sort({
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const slots = await DoctorSchedule.find({ doctor: req.user.id, date: { $gte: today } }).sort({
     date: 1,
     startTime: 1,
   });
