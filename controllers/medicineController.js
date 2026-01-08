@@ -79,5 +79,5 @@ export const updateMedicinePlan = catchAsync(async (req, res, next) => {
 
 export const deleteMedicinePlan = catchAsync(async (req, res, next) => {
   await MedicinePlan.findOneAndDelete({ _id: req.params.id, patient: req.user.id });
-  sendResponse(res, 204, "Medicine plan deleted", null);
+  sendResponse(res, 200, "Medicine plan deleted", null);
 });
