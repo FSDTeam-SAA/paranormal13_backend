@@ -137,3 +137,21 @@ export const markAppointmentCompleted = catchAsync(async (req, res, next) => {
 
   sendResponse(res, 200, "Appointment marked as completed", { appointment });
 });
+
+export const startChat = catchAsync(async (req, res, next) => {
+  const appointment = await Appointment.findOne({
+    _id: req.params.id,
+    doctor: req.user.id,
+  });
+
+  if (!appointment) {
+    return next(new AppError("Appointment not found or does not belong to you.", 404));
+  }
+
+  if (!appointment.isChatActive) {
+    appointment.isChatActive = true;
+    await appointment.save();
+  }
+
+  sendResponse(res, 200, "Chat started successfully", { appointment });
+});

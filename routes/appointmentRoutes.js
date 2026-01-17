@@ -5,6 +5,7 @@ import {
   getDoctorAppointments,
   markAppointmentCompleted,
   cancelAppointment,
+  startChat
 } from "../controllers/appointmentController.js";
 import {
   protect,
@@ -28,6 +29,13 @@ router.get(
   // Gatekeeper: Unapproved doctors shouldn't see patient lists
   restrictToApprovedDoctor,
   getDoctorAppointments
+);
+
+router.patch(
+  "/:id/start-chat",
+  restrictTo("doctor"),
+  restrictToApprovedDoctor,
+  startChat
 );
 
 // Mark as completed (e.g. after chat)
