@@ -14,7 +14,6 @@ import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// --- PUBLIC ROUTES (No Token Needed) ---
 router.post("/signup", signup);
 router.post("/login", login);
 router.post("/logout", logout);
@@ -25,9 +24,9 @@ router.post("/verifyResetCode", verifyResetCode);
 router.post("/resetPassword", resetPassword);
 
 router.post("/google", socialAuthController.googleAuth);
+router.post("/apple", socialAuthController.appleAuth);
 
-// --- PROTECTED ROUTES (Token Needed) ---
-router.use(protect);
+router.use(protect); 
 
 router.patch("/updateMyPassword", updatePassword);
 
