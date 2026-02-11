@@ -1,9 +1,11 @@
 import Notification from "../models/notificationModel.js";
+import FamilyMember from "../models/familyMemberModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 import { sendResponse } from "../utils/responseHandler.js";
+import { sendNotification as sendFCMNotification } from "../utils/notification.js";
 
-// --- HELPER FUNCTION (To be used by other controllers) ---
+// --- HELPER FUNCTION (To be used by other controllers for Database Notifications) ---
 export const sendNotification = async (
   io,
   recipientId,
@@ -73,4 +75,55 @@ export const markAllAsRead = catchAsync(async (req, res, next) => {
   );
 
   sendResponse(res, 200, "All notifications marked as read", null);
+});
+
+// 4. Send Panic Alert to Family
+export const sendPanic = catchAsync(async (req, res, next) => {
+  const user = req.user;
+
+  // 1. Find all accepted family members
+  const connections = await FamilyMember.find({
+    $or: [{ requester: user.id }, { recipient: user.id }],
+    status: "accepted",
+  }).populate("requester recipient");
+
+  const recipients = connections.map((conn) => {
+    return conn.requester.id === user.id ? conn.recipient : conn.requester;
+  });
+
+  if (recipients.length === 0) {
+    return next(new AppError("No family members found to notify.", 404));
+  }
+
+  // 2. Send Notifications
+  const title = "🚨 EMERGENCY ALERT";
+  const body = `${user.name} is in a serious condition and needs immediate help!`;
+
+  const results = await Promise.allSettled(
+    recipients.map(async (recipient) => {
+      // Send Database Notification
+      await Notification.create({
+        recipient: recipient.id,
+        type: "panic",
+        title,
+        message: body,
+        relatedId: user.id,
+      });
+
+      // Send FCM Notification if token exists
+      if (recipient.fcmToken) {
+        await sendFCMNotification(recipient.fcmToken, { title, body });
+      }
+      
+      // Emit via Socket.io if globally available
+      const io = req.app.get("io");
+      if (io) {
+        io.to(recipient.id.toString()).emit("newNotification", { title, body, type: "panic" });
+      }
+    })
+  );
+
+  sendResponse(res, 200, "Emergency alerts sent to all family members", {
+    notifiedCount: recipients.length,
+  });
 });

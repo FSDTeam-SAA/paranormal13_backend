@@ -24,7 +24,7 @@ export const updateMe = catchAsync(async (req, res, next) => {
   const allowedFields = [
     "name", "phone", "gender", "dateOfBirth", 
     "specialization", "experienceYears", "about", "hospitalName",
-    "location", "address"
+    "location", "address", "fcmToken"
   ];
   
   const filteredBody = {};

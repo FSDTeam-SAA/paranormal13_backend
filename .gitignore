@@ -61,3 +61,6 @@ temp/
 # Optional: lockfiles are usually committed — uncomment to ignore
 # yarn.lock
 # package-lock.json
+
+# Private / Secret files
+secrets/

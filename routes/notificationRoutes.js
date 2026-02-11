@@ -16,4 +16,7 @@ router.patch("/:id/read", notificationController.markAsRead);
 // 3. Mark ALL as Read (Useful for "Mark all as read" button)
 router.patch("/read-all", notificationController.markAllAsRead);
 
+// 4. Panic Alert (Emergency)
+router.post("/panic", notificationController.sendPanic);
+
 export default router;

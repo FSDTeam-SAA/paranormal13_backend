@@ -80,6 +80,7 @@ const userSchema = new mongoose.Schema(
     passwordChangedAt: Date,
     passwordResetCode: String,
     passwordResetExpires: Date,
+    fcmToken: String,
     active: {
       type: Boolean,
       default: true,

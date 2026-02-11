@@ -10,6 +10,7 @@ import {
 } from "../utils/emailTemplates.js";
 import { hashToken, issueAuthTokens } from "../utils/tokenService.js";
 import { sendResponse } from "../utils/responseHandler.js";
+import { sendNotification } from "../utils/notification.js";
 
 const getIncomingRefreshToken = (req) =>
   req.cookies?.refreshToken ||
@@ -65,6 +66,12 @@ export const login = catchAsync(async (req, res, next) => {
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError("Incorrect credentials", 401));
   }
+
+  // // Send notification
+  // await sendNotification("ewAJfNZ6R1mOOf8NxUnofi:APA91bFB5n9WKn0lw86Dfrz3iXzKpYTcu2l3bZHUX5ycuRDlH_rm87eJaowtdVVHQXPysvSQpZ1brcF2iE4V-PBwMQoTI04LK1GgFgX5f25i_S-DGDLFI_Q", {
+  //   title: "Login",
+  //   body: "You have successfully logged in.",
+  // });
 
   await issueAuthTokens(user, 200, res, "User Logged in successfully");
 });
