@@ -6,7 +6,7 @@ import AppError from "../utils/appError.js";
 import { issueAuthTokens } from "../utils/tokenService.js";
 
 // Initialize Google Client
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const googleClient = new OAuth2Client();
 
 /**
  * 1. GOOGLE AUTHENTICATION
@@ -19,15 +19,28 @@ export const googleAuth = catchAsync(async (req, res, next) => {
     return next(new AppError("Google token is required", 400));
   }
 
+  // Get audiences inside the handler to ensure dotenv has loaded them
+  const GOOGLE_AUDIENCES = [
+    process.env.GOOGLE_CLIENT_ID_WEB,
+    process.env.GOOGLE_CLIENT_ID_ANDROID,
+    process.env.GOOGLE_CLIENT_ID_IOS,
+  ]
+    .filter(Boolean)
+    .map((id) => id.trim());
+
+  console.log("DEBUG: Final GOOGLE_AUDIENCES =", GOOGLE_AUDIENCES);
+
+  const cleanToken = token.trim();
+
   // A. Verify Token with Google
   let ticket;
   try {
     ticket = await googleClient.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      idToken: cleanToken,
+      audience: GOOGLE_AUDIENCES,
     });
   } catch (err) {
-    return next(new AppError("Invalid Google Token", 401));
+    return next(new AppError(`Invalid Google Token: ${err.message}`, 401));
   }
 
   const payload = ticket.getPayload();
@@ -91,15 +104,16 @@ export const googleAuth = catchAsync(async (req, res, next) => {
  * Requires: { identityToken, fullName?, type: 'login'|'signup', role? }
  */
 export const appleAuth = catchAsync(async (req, res, next) => {
-  const { identityToken, fullName, role, type } = req.body;
+  const { token, identityToken, fullName, role, type } = req.body;
+  const finalToken = token || identityToken;
 
-  if (!identityToken) {
+  if (!finalToken) {
     return next(new AppError("Apple Identity Token is required", 400));
   }
 
   let appleIdTokenClaims;
   try {
-    appleIdTokenClaims = await appleSignin.verifyIdToken(identityToken, {
+    appleIdTokenClaims = await appleSignin.verifyIdToken(finalToken, {
       audience: process.env.APPLE_CLIENT_ID,
       ignoreExpiration: false,
     });

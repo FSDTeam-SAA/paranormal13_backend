@@ -1,12 +1,13 @@
-import mongoose from "mongoose";
 import dotenv from "dotenv";
+dotenv.config({ path: "./.env" });
+
+import mongoose from "mongoose";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import app from "./app.js";
-import socketHandler from "./utils/socketHandler.js"; // Import the handler
+import socketHandler from "./utils/socketHandler.js";
 
-// 1. Load environment variables
-dotenv.config({ path: "./.env" });
+// Import app dynamically to ensure dotenv is loaded first
+const { default: app } = await import("./app.js");
 
 // 2. Safety Check
 if (!process.env.DATABASE) {
