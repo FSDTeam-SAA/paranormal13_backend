@@ -39,13 +39,14 @@ const limiter = rateLimit({
 app.use("/api", limiter);
 
 // 5) Body parser
-app.use(express.json({ limit: "10kb" }));
+app.use(express.json({ limit: "15kb" })); // Increased slightly for very long tokens
 app.use(cookieParser());
 
 // 6) Data sanitization
 app.use(mongoSanitize());
 
-// 7) XSS Protection
+// 7) XSS Protection - MOVED BELOW AUTH ROUTES OR JUST AFTER BODY PARSER?
+// Let's keep it here but we'll monitor if it's the culprit.
 app.use(xss());
 
 // 8) Prevent parameter pollution
