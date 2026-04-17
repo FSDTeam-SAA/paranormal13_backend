@@ -19,4 +19,7 @@ router.patch("/read-all", notificationController.markAllAsRead);
 // 4. Panic Alert (Emergency)
 router.post("/panic", notificationController.sendPanic);
 
-export default router;
+// 5. Test Notification
+router.post("/send-test", notificationController.sendTestNotification);
+
+export default router;

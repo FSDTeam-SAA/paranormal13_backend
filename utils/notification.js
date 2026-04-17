@@ -7,26 +7,43 @@ import { messaging } from "../config/firebase.js";
  */
 export const sendNotification = async (token, { title, body, data = {} }) => {
   try {
+    const isCall = data.type === "CALL" || data.type === "EMERGENCY" || data.type === "panic";
+
     const message = {
-      notification: {
-        title,
-        body,
+      // If it's a call, we OMIT the notification block to avoid a standard push banner
+      // and let the Flutter background handler show the CallKit UI instead.
+      ...(isCall ? {} : {
+        notification: {
+          title,
+          body,
+        }
+      }),
+      data: {
+        ...data,
+        click_action: "FLUTTER_NOTIFICATION_CLICK",
+        title: title, // Put in data for CallKit to use
+        body: body,
       },
-      data,
       android: {
         priority: "high",
         notification: {
-          channelId: "high_importance_channel",
-          sound: "default",
+          channelId: isCall ? "high_importance_channel" : "default_channel",
+          sound: isCall ? "alarm" : "default",
           priority: "high",
+          clickAction: "FLUTTER_NOTIFICATION_CLICK",
         },
       },
       apns: {
         payload: {
           aps: {
             contentAvailable: true,
-            sound: "default",
+            sound: isCall ? "alarm.caf" : "default",
+            priority: 10,
           },
+        },
+        headers: {
+          "apns-priority": "10",
+          "apns-push-type": isCall ? "background" : "alert", // Use background for data-only
         },
       },
       token,
@@ -35,9 +52,7 @@ export const sendNotification = async (token, { title, body, data = {} }) => {
     const response = await messaging.send(message);
 
     if (response) {
-      console.log("Successfully sent notification:", response);
-    } else {
-      console.log("Failed to send notification");
+      console.log(`Successfully sent ${data.type || 'standard'} notification:`, response);
     }
 
     return response;
@@ -46,6 +61,7 @@ export const sendNotification = async (token, { title, body, data = {} }) => {
     throw error;
   }
 };
+
 
 /**
  * Send a notification to a specific topic

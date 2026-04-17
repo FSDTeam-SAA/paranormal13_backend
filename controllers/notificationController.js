@@ -99,6 +99,9 @@ export const sendPanic = catchAsync(async (req, res, next) => {
   const title = "🚨 EMERGENCY ALERT";
   const body = `${user.name} is in a serious condition and needs immediate help!`;
 
+  console.log("Recipients Tokens:", recipients.map(r => r.fcmToken));
+  
+  
   const results = await Promise.allSettled(
     recipients.map(async (recipient) => {
       // Send Database Notification
@@ -109,12 +112,29 @@ export const sendPanic = catchAsync(async (req, res, next) => {
         message: body,
         relatedId: user.id,
       });
-
+      console.log(`Sending Panic FCM to: ${recipient.email || recipient.phone}, Token: ${recipient.fcmToken.substring(0, 10)}...`);
+      
       // Send FCM Notification if token exists
       if (recipient.fcmToken) {
-        await sendFCMNotification(recipient.fcmToken, { title, body });
+
+
+        await sendFCMNotification(recipient.fcmToken, {
+          title,
+          body,
+          data: {
+            type: "panic",
+            senderName: user.name,
+            caller_name: user.name, // For redundant mapping
+            senderId: user.id.toString(),
+            userId: user.id.toString(),
+            phone: user.phone || "Emergency",
+            avatarUrl: user.avatarUrl || ""
+          }
+        });
+      } else {
+        console.warn(`No FCM token found for recipient: ${recipient.email || recipient.phone}`);
       }
-      
+
       // Emit via Socket.io if globally available
       const io = req.app.get("io");
       if (io) {
@@ -127,3 +147,30 @@ export const sendPanic = catchAsync(async (req, res, next) => {
     notifiedCount: recipients.length,
   });
 });
+
+// 5. Send Test Notification
+export const sendTestNotification = catchAsync(async (req, res, next) => {
+  const { token, title, body, data, type } = req.body;
+  const targetToken = token || req.user.fcmToken;
+
+  if (!targetToken) {
+    return next(new AppError("No FCM token provided and user has no registered token.", 400));
+  }
+
+  const notificationPayload = {
+    title: title || "Test Notification",
+    body: body || "This is a test notification from the server!",
+    data: {
+      ...(data || {}),
+      type: type || (data && data.type) || "test",
+    },
+  };
+
+  const response = await sendFCMNotification(targetToken, notificationPayload);
+
+  sendResponse(res, 200, "Test notification sent successfully", {
+    messageId: response,
+    payload: notificationPayload,
+  });
+});
+

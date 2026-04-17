@@ -10,7 +10,8 @@ const notificationSchema = new mongoose.Schema(
     // Type helps frontend decide which icon to show (pill, calendar, etc.)
     type: {
       type: String,
-      enum: ["order", "appointment", "family", "system", "message"],
+      enum: ["order", "appointment", "family", "system", "message", "panic", "emergency", "test"],
+
       required: true,
     },
     title: {
