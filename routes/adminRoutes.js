@@ -1,9 +1,6 @@
 import express from "express";
 import * as adminController from "../controllers/adminController.js";
 import { protect, restrictTo } from "../middleware/authMiddleware.js";
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
 
 const router = express.Router();
 
