@@ -5,6 +5,8 @@ import mongoose from "mongoose";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import socketHandler from "./utils/socketHandler.js";
+import { startMedicineWorker } from "./workers/medicineWorker.js";
+import { startScheduler, startSchedulerWorker } from "./cron/scheduler.js";
 
 // Import app dynamically to ensure dotenv is loaded first
 const { default: app } = await import("./app.js");
@@ -52,6 +54,11 @@ mongoose
 const port = process.env.PORT || 8000;
 httpServer.listen(port, () => {
   console.log(`🚀 App running on port ${port}...`);
+  
+  // Start Medicine Reminders
+  startMedicineWorker();
+  startSchedulerWorker();
+  startScheduler();
 });
 
 // 9. Handle Global Rejections
